@@ -238,6 +238,38 @@ export function WeatherBadge({ weather, tone, now, onFlip }) {
   )
 }
 
+// 主卡片换成天气：不转卡片。天空不动，前面的内容退到雾里，温度数字从右上角飞到左边变大，7 天一列列浮上来
+let wxClose = null
+export function toggleWx(card, force) {
+  if (!card) return
+  const on = force != null ? force : !card.classList.contains('wx-on')
+  if (on === card.classList.contains('wx-on')) return
+  const small = card.querySelector('.lf-wbadge .lf-wb-temp'), big = card.querySelector('.lf-wxback .lf-wk-temp')
+  const fly = (from, to, el, back) => {
+    if (!from || !to || !el || !el.animate) return
+    el.getAnimations && el.getAnimations().forEach((x) => x.cancel())
+    const a = from.getBoundingClientRect(), b = to.getBoundingClientRect(); if (!a.width || !b.width) return
+    const s = a.height / b.height, dy = a.top - b.top
+    const fromT = `translate(${a.left - b.left}px, ${dy}px) scale(${s})`
+    el.animate(back ? [{ transform: 'none', opacity: 1 }, { transform: fromT, opacity: 0 }] : [{ transform: fromT, opacity: 0.6 }, { transform: 'none', opacity: 1 }],
+      { duration: back ? 420 : 720, easing: back ? 'cubic-bezier(.4,0,.6,1)' : 'cubic-bezier(.2,.9,.25,1.05)', fill: back ? 'forwards' : 'backwards' })
+  }
+  if (on) {
+    card.classList.add('wx-on')
+    if (big) { big.style.transformOrigin = '0 0'; fly(small, big, big, false) }
+    if (wxClose) wxClose()
+    const k = (e) => { if (e.target.closest && e.target.closest('.lf-wk-edit')) return; toggleWx(card, false) }
+    const esc = (e) => { if (e.key === 'Escape') toggleWx(card, false) }
+    const t = setTimeout(() => document.addEventListener('click', k), 0)
+    window.addEventListener('keydown', esc)
+    wxClose = () => { clearTimeout(t); document.removeEventListener('click', k); window.removeEventListener('keydown', esc); wxClose = null }
+  } else {
+    if (wxClose) wxClose()
+    if (big) fly(small, big, big, true)
+    card.classList.remove('wx-on')
+  }
+}
+
 const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 // 主卡片背面：7 天预报。卡片很宽，所以一天一列（iOS 大号天气小组件的横排版），温度条竖着画在本周最低~最高之间
 export function WeekWeather({ weather }) {
@@ -267,7 +299,7 @@ export function WeekWeather({ weather }) {
           const dt = new Date(d.date + 'T12:00:00')
           const a = ((d.lo - mn) / span) * 100, b = ((d.hi - mn) / span) * 100
           return (
-            <li key={d.date} className={i === 0 ? 'today' : ''} style={{ animationDelay: 0.08 + i * 0.04 + 's' }}>
+            <li key={d.date} className={i === 0 ? 'today' : ''} style={{ '--i': i }}>
               <span className="lf-wk-day">{i === 0 ? '今天' : WD[dt.getDay()]}</span>
               <span className="lf-wk-ic"><WIcon code={d.code} size={26} /></span>
               <em className="lf-wk-pop">{d.pop >= 30 ? d.pop + '%' : ''}</em>
@@ -389,10 +421,28 @@ export const WEATHER_CSS = `
 .lf-root .lf-wbadge.compact .lf-wb-temp{font-size:44px;font-weight:300;line-height:1.05;letter-spacing:-.04em}
 .lf-root .lf-wbadge.compact .lf-wb-sub{font-size:12.5px;color:rgba(255,255,255,.85);white-space:pre}
 .lf-root .lf-wb-mini{border:0;background:transparent;padding:0;font:inherit;cursor:pointer}
+/* 主卡片切到天气：不翻卡，前景退雾，天气浮上来 */
+.lf-wxback{position:absolute;inset:0;z-index:2;padding:32px 36px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1),visibility 0s linear .45s}
+[data-card=hero].wx-on .lf-wxback{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .45s cubic-bezier(.2,.8,.2,1) .08s,visibility 0s}
+[data-card=hero] .lf-hero-sky,[data-card=hero] .lf-wbadge{transition:opacity .4s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1),transform .6s cubic-bezier(.2,.8,.2,1)}
+[data-card=hero].wx-on .lf-hero-sky{opacity:0;filter:blur(12px);transform:scale(.97);pointer-events:none}
+[data-card=hero].wx-on .lf-wbadge{opacity:0;pointer-events:none;animation:none}
+[data-card=hero] .lf-sky-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.18),rgba(0,0,0,.05));opacity:0;transition:opacity .6s}
+[data-card=hero].wx-on .lf-sky-hero::after{opacity:1}
+.lf-wxback .lf-wk{min-height:100%;height:100%}
+.lf-wxback .lf-wk-cols{transform:translateY(18px) scale(.97);opacity:0;transition:transform .7s cubic-bezier(.2,.9,.25,1.05),opacity .45s}
+[data-card=hero].wx-on .lf-wk-cols{transform:none;opacity:1}
+.lf-wxback .lf-wk-cols li{animation:none;opacity:0;transform:translateY(16px);filter:blur(4px);transition:opacity .4s,transform .6s cubic-bezier(.2,.9,.25,1.1),filter .45s}
+[data-card=hero].wx-on .lf-wk-cols li{opacity:1;transform:none;filter:none;transition-delay:calc(.1s + var(--i) * .045s)}
+.lf-wxback .lf-wk-bar i{transform:scaleY(0);transform-origin:bottom;transition:transform .7s cubic-bezier(.2,.9,.25,1.05)}
+[data-card=hero].wx-on .lf-wk-bar i{transform:none;transition-delay:calc(.28s + var(--i) * .045s)}
+.lf-wxback .lf-wk-sub,.lf-wxback .lf-wk-city,.lf-wxback .lf-wk-title{opacity:0;transform:translateY(8px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1)}
+[data-card=hero].wx-on .lf-wk-sub,[data-card=hero].wx-on .lf-wk-city,[data-card=hero].wx-on .lf-wk-title{opacity:1;transform:none}
+[data-card=hero].wx-on .lf-wk-city{transition-delay:.12s}[data-card=hero].wx-on .lf-wk-sub{transition-delay:.2s}[data-card=hero].wx-on .lf-wk-title{transition-delay:.35s}
 /* 主卡片背面 */
 .lf-wk{position:relative;z-index:1;display:grid;grid-template-columns:minmax(220px,.8fr) 2.2fr;gap:28px;align-items:stretch;min-height:380px;color:#fff;cursor:pointer}
 .lf-wk-head{display:flex;flex-direction:column;justify-content:space-between;padding:4px 0}
-.lf-wk-now{display:flex;flex-direction:column;align-items:flex-start;gap:4px;animation:lf-swap .45s cubic-bezier(.2,.8,.2,1) both}
+.lf-wk-now{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .lf-root .lf-wk-city{display:inline-flex;align-items:baseline;gap:8px;border:0;background:transparent;padding:0;color:#fff;font:inherit;font-size:22px;font-weight:650;cursor:pointer;text-shadow:0 1px 10px rgba(0,0,0,.18)}
 .lf-wk-city span{font-size:12px;font-weight:500;color:rgba(255,255,255,.6);opacity:0;transition:opacity .2s}
 .lf-wk-city:hover span{opacity:1}

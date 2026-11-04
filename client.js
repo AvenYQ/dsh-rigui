@@ -396,6 +396,52 @@ function WeatherBadge({ weather, tone, now, onFlip }) {
   const k = kindOf(w.code);
   return /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-wbadge compact", title: LABEL[k] + " · 点一下看 7 天" }, /* @__PURE__ */ import_react.default.createElement("button", { type: "button", className: "lf-wb-hit lf-wb-city", onClick: onFlip }, w.city), /* @__PURE__ */ import_react.default.createElement("button", { type: "button", className: "lf-wb-hit lf-wb-temp", onClick: onFlip }, w.temp, "°"), /* @__PURE__ */ import_react.default.createElement("button", { type: "button", className: "lf-wb-hit lf-wb-sub", onClick: onFlip }, "最高 ", w.hi, "°  最低 ", w.lo, "°"));
 }
+var wxClose = null;
+function toggleWx(card, force) {
+  if (!card) return;
+  const on = force != null ? force : !card.classList.contains("wx-on");
+  if (on === card.classList.contains("wx-on")) return;
+  const small = card.querySelector(".lf-wbadge .lf-wb-temp"), big = card.querySelector(".lf-wxback .lf-wk-temp");
+  const fly = (from, to, el, back) => {
+    if (!from || !to || !el || !el.animate) return;
+    el.getAnimations && el.getAnimations().forEach((x) => x.cancel());
+    const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+    if (!a.width || !b.width) return;
+    const s = a.height / b.height, dy = a.top - b.top;
+    const fromT = `translate(${a.left - b.left}px, ${dy}px) scale(${s})`;
+    el.animate(
+      back ? [{ transform: "none", opacity: 1 }, { transform: fromT, opacity: 0 }] : [{ transform: fromT, opacity: 0.6 }, { transform: "none", opacity: 1 }],
+      { duration: back ? 420 : 720, easing: back ? "cubic-bezier(.4,0,.6,1)" : "cubic-bezier(.2,.9,.25,1.05)", fill: back ? "forwards" : "backwards" }
+    );
+  };
+  if (on) {
+    card.classList.add("wx-on");
+    if (big) {
+      big.style.transformOrigin = "0 0";
+      fly(small, big, big, false);
+    }
+    if (wxClose) wxClose();
+    const k = (e) => {
+      if (e.target.closest && e.target.closest(".lf-wk-edit")) return;
+      toggleWx(card, false);
+    };
+    const esc = (e) => {
+      if (e.key === "Escape") toggleWx(card, false);
+    };
+    const t = setTimeout(() => document.addEventListener("click", k), 0);
+    window.addEventListener("keydown", esc);
+    wxClose = () => {
+      clearTimeout(t);
+      document.removeEventListener("click", k);
+      window.removeEventListener("keydown", esc);
+      wxClose = null;
+    };
+  } else {
+    if (wxClose) wxClose();
+    if (big) fly(small, big, big, true);
+    card.classList.remove("wx-on");
+  }
+}
 var WD = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 function WeekWeather({ weather }) {
   const { w, setCity } = weather;
@@ -415,7 +461,7 @@ function WeekWeather({ weather }) {
   }, title: "换城市" }, w.city, /* @__PURE__ */ import_react.default.createElement("span", null, "换城市")), /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-wk-temp" }, w.temp, "°"), /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-wk-sub" }, /* @__PURE__ */ import_react.default.createElement(WIcon, { code: w.code, night: !w.isDay, size: 16 }), LABEL[k0], " · 体感 ", w.feels, "° · 湿度 ", w.hum, "%")), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-title" }, "未来 7 天 · 点任意处翻回")), /* @__PURE__ */ import_react.default.createElement("ul", { className: "lf-wk-cols" }, days.map((d, i) => {
     const dt = /* @__PURE__ */ new Date(d.date + "T12:00:00");
     const a = (d.lo - mn) / span * 100, b = (d.hi - mn) / span * 100;
-    return /* @__PURE__ */ import_react.default.createElement("li", { key: d.date, className: i === 0 ? "today" : "", style: { animationDelay: 0.08 + i * 0.04 + "s" } }, /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-day" }, i === 0 ? "今天" : WD[dt.getDay()]), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-ic" }, /* @__PURE__ */ import_react.default.createElement(WIcon, { code: d.code, size: 26 })), /* @__PURE__ */ import_react.default.createElement("em", { className: "lf-wk-pop" }, d.pop >= 30 ? d.pop + "%" : ""), /* @__PURE__ */ import_react.default.createElement("b", { className: "lf-wk-hi" }, d.hi, "°"), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-bar" }, /* @__PURE__ */ import_react.default.createElement("i", { style: { bottom: a + "%", height: Math.max(6, b - a) + "%", background: `linear-gradient(0deg,${col(d.lo)},${col(d.hi)})` } }), i === 0 && w.temp != null && /* @__PURE__ */ import_react.default.createElement("b", { style: { bottom: Math.min(100, Math.max(0, (w.temp - mn) / span * 100)) + "%" } })), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-lo" }, d.lo, "°"));
+    return /* @__PURE__ */ import_react.default.createElement("li", { key: d.date, className: i === 0 ? "today" : "", style: { "--i": i } }, /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-day" }, i === 0 ? "今天" : WD[dt.getDay()]), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-ic" }, /* @__PURE__ */ import_react.default.createElement(WIcon, { code: d.code, size: 26 })), /* @__PURE__ */ import_react.default.createElement("em", { className: "lf-wk-pop" }, d.pop >= 30 ? d.pop + "%" : ""), /* @__PURE__ */ import_react.default.createElement("b", { className: "lf-wk-hi" }, d.hi, "°"), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-bar" }, /* @__PURE__ */ import_react.default.createElement("i", { style: { bottom: a + "%", height: Math.max(6, b - a) + "%", background: `linear-gradient(0deg,${col(d.lo)},${col(d.hi)})` } }), i === 0 && w.temp != null && /* @__PURE__ */ import_react.default.createElement("b", { style: { bottom: Math.min(100, Math.max(0, (w.temp - mn) / span * 100)) + "%" } })), /* @__PURE__ */ import_react.default.createElement("span", { className: "lf-wk-lo" }, d.lo, "°"));
   })));
 }
 var WEATHER_CSS = `
@@ -522,10 +568,28 @@ var WEATHER_CSS = `
 .lf-root .lf-wbadge.compact .lf-wb-temp{font-size:44px;font-weight:300;line-height:1.05;letter-spacing:-.04em}
 .lf-root .lf-wbadge.compact .lf-wb-sub{font-size:12.5px;color:rgba(255,255,255,.85);white-space:pre}
 .lf-root .lf-wb-mini{border:0;background:transparent;padding:0;font:inherit;cursor:pointer}
+/* 主卡片切到天气：不翻卡，前景退雾，天气浮上来 */
+.lf-wxback{position:absolute;inset:0;z-index:2;padding:32px 36px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1),visibility 0s linear .45s}
+[data-card=hero].wx-on .lf-wxback{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .45s cubic-bezier(.2,.8,.2,1) .08s,visibility 0s}
+[data-card=hero] .lf-hero-sky,[data-card=hero] .lf-wbadge{transition:opacity .4s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1),transform .6s cubic-bezier(.2,.8,.2,1)}
+[data-card=hero].wx-on .lf-hero-sky{opacity:0;filter:blur(12px);transform:scale(.97);pointer-events:none}
+[data-card=hero].wx-on .lf-wbadge{opacity:0;pointer-events:none;animation:none}
+[data-card=hero] .lf-sky-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.18),rgba(0,0,0,.05));opacity:0;transition:opacity .6s}
+[data-card=hero].wx-on .lf-sky-hero::after{opacity:1}
+.lf-wxback .lf-wk{min-height:100%;height:100%}
+.lf-wxback .lf-wk-cols{transform:translateY(18px) scale(.97);opacity:0;transition:transform .7s cubic-bezier(.2,.9,.25,1.05),opacity .45s}
+[data-card=hero].wx-on .lf-wk-cols{transform:none;opacity:1}
+.lf-wxback .lf-wk-cols li{animation:none;opacity:0;transform:translateY(16px);filter:blur(4px);transition:opacity .4s,transform .6s cubic-bezier(.2,.9,.25,1.1),filter .45s}
+[data-card=hero].wx-on .lf-wk-cols li{opacity:1;transform:none;filter:none;transition-delay:calc(.1s + var(--i) * .045s)}
+.lf-wxback .lf-wk-bar i{transform:scaleY(0);transform-origin:bottom;transition:transform .7s cubic-bezier(.2,.9,.25,1.05)}
+[data-card=hero].wx-on .lf-wk-bar i{transform:none;transition-delay:calc(.28s + var(--i) * .045s)}
+.lf-wxback .lf-wk-sub,.lf-wxback .lf-wk-city,.lf-wxback .lf-wk-title{opacity:0;transform:translateY(8px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1)}
+[data-card=hero].wx-on .lf-wk-sub,[data-card=hero].wx-on .lf-wk-city,[data-card=hero].wx-on .lf-wk-title{opacity:1;transform:none}
+[data-card=hero].wx-on .lf-wk-city{transition-delay:.12s}[data-card=hero].wx-on .lf-wk-sub{transition-delay:.2s}[data-card=hero].wx-on .lf-wk-title{transition-delay:.35s}
 /* 主卡片背面 */
 .lf-wk{position:relative;z-index:1;display:grid;grid-template-columns:minmax(220px,.8fr) 2.2fr;gap:28px;align-items:stretch;min-height:380px;color:#fff;cursor:pointer}
 .lf-wk-head{display:flex;flex-direction:column;justify-content:space-between;padding:4px 0}
-.lf-wk-now{display:flex;flex-direction:column;align-items:flex-start;gap:4px;animation:lf-swap .45s cubic-bezier(.2,.8,.2,1) both}
+.lf-wk-now{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .lf-root .lf-wk-city{display:inline-flex;align-items:baseline;gap:8px;border:0;background:transparent;padding:0;color:#fff;font:inherit;font-size:22px;font-weight:650;cursor:pointer;text-shadow:0 1px 10px rgba(0,0,0,.18)}
 .lf-wk-city span{font-size:12px;font-weight:500;color:rgba(255,255,255,.6);opacity:0;transition:opacity .2s}
 .lf-wk-city:hover span{opacity:1}
@@ -4836,7 +4900,6 @@ function LifeApp() {
   }).filter(Boolean)]) : null;
   const weather = useWeather();
   const heroTone = S2.nowEvent ? { key: eventTone(S2.nowEvent), e: S2.nowEvent } : null;
-  const heroFlip = (0, import_react7.useRef)(null);
   const todoEls = (0, import_react7.useRef)({});
   const todoOrder = useDisplayOrder(S2.todos.map((t) => t.id), 520);
   const shownTodos = todoOrder.map((id) => S2.todos.find((t) => t.id === id)).filter(Boolean);
@@ -4877,80 +4940,65 @@ function LifeApp() {
     const d = new Date(S2.now);
     return d.getMonth() + 1 + " 月 " + d.getDate() + " 日，周" + "日一二三四五六"[d.getDay()];
   })();
-  return /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-root", ref: rootRef }, /* @__PURE__ */ import_react7.default.createElement("style", null, CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS + WEATHER_CSS), /* @__PURE__ */ import_react7.default.createElement(LayoutCtx.Provider, { value: layoutApi }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-wrap", style: { position: "relative", zIndex: 1 } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { marginBottom: GAP } }, /* @__PURE__ */ import_react7.default.createElement(
-    Card,
+  return /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-root", ref: rootRef }, /* @__PURE__ */ import_react7.default.createElement("style", null, CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS + WEATHER_CSS), /* @__PURE__ */ import_react7.default.createElement(LayoutCtx.Provider, { value: layoutApi }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-wrap", style: { position: "relative", zIndex: 1 } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { marginBottom: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("hero", 0), cls: "s12", bg: "#3B6FA8", color: "#F4F5F1", style: { padding: "32px 36px" } }, /* @__PURE__ */ import_react7.default.createElement(HeroSky, { w: weather.w, now, tone: heroTone }), /* @__PURE__ */ import_react7.default.createElement(WeatherBadge, { weather, tone: heroTone, now, onFlip: (e) => {
+    e.stopPropagation();
+    toggleWx(e.currentTarget.closest("[data-card=hero]"));
+  } }), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-wxback", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement(WeekWeather, { weather })), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero lf-hero-sky lf-glassy" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero-left", style: { display: "flex", flexDirection: "column", gap: 44, alignSelf: "stretch", justifyContent: "center", padding: "4px 0" } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h1", { style: { margin: 0, fontSize: "clamp(34px, 4.4cqi, 52px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05 } }, hello, editName ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, "，", /* @__PURE__ */ import_react7.default.createElement(
+    "input",
     {
-      ...P2("hero", 0),
-      cls: "s12",
-      bg: "#3B6FA8",
-      color: "#F4F5F1",
-      style: { padding: "32px 36px" },
-      tapFlip: false,
-      flipRef: heroFlip,
-      back: /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement(HeroSky, { w: weather.w, now, tone: null }), /* @__PURE__ */ import_react7.default.createElement(WeekWeather, { weather }))
-    },
-    /* @__PURE__ */ import_react7.default.createElement(HeroSky, { w: weather.w, now, tone: heroTone }),
-    /* @__PURE__ */ import_react7.default.createElement(WeatherBadge, { weather, tone: heroTone, now, onFlip: (e) => {
-      e.stopPropagation();
-      heroFlip.current && heroFlip.current();
-    } }),
-    /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero lf-hero-sky lf-glassy" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero-left", style: { display: "flex", flexDirection: "column", gap: 44, alignSelf: "stretch", justifyContent: "center", padding: "4px 0" } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h1", { style: { margin: 0, fontSize: "clamp(34px, 4.4cqi, 52px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05 } }, hello, editName ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, "，", /* @__PURE__ */ import_react7.default.createElement(
-      "input",
-      {
-        autoFocus: true,
-        className: "lf-name-input",
-        defaultValue: userName,
-        maxLength: 16,
-        "aria-label": "怎么称呼你",
-        onBlur: (e) => saveName(e.target.value),
-        onKeyDown: (e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-          if (e.key === "Escape") setEditName(false);
-        }
+      autoFocus: true,
+      className: "lf-name-input",
+      defaultValue: userName,
+      maxLength: 16,
+      "aria-label": "怎么称呼你",
+      onBlur: (e) => saveName(e.target.value),
+      onKeyDown: (e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+        if (e.key === "Escape") setEditName(false);
       }
-    )) : /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-name", onClick: () => setEditName(true), title: userName ? "改称呼" : "告诉我怎么称呼你" }, userName ? "，" + userName : /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-name-add" }, "，怎么称呼你？")))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-sayrow" }, /* @__PURE__ */ import_react7.default.createElement("form", { onSubmit: submit, className: "lf-sayform", style: { position: "relative", flex: 1, minWidth: 0 } }, /* @__PURE__ */ import_react7.default.createElement("label", { htmlFor: "lf-say", style: { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" } }, "说一句来记录"), /* @__PURE__ */ import_react7.default.createElement(
-      "input",
-      {
-        id: "lf-say",
-        ref: inputRef,
-        className: "lf-input",
-        value: text,
-        autoComplete: "off",
-        spellCheck: false,
-        placeholder: sayHint,
-        onChange: (e) => setText(e.target.value),
-        onFocus: () => setSayFocus(true),
-        onBlur: () => setSayFocus(false),
-        onCompositionStart: () => {
-          composing.current = true;
-        },
-        onCompositionEnd: () => {
-          composing.current = false;
-          setCompTick((x) => x + 1);
-        },
-        onKeyDown: (e) => {
-          if (e.key === "Escape") setText("");
-        }
+    }
+  )) : /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-name", onClick: () => setEditName(true), title: userName ? "改称呼" : "告诉我怎么称呼你" }, userName ? "，" + userName : /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-name-add" }, "，怎么称呼你？")))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-sayrow" }, /* @__PURE__ */ import_react7.default.createElement("form", { onSubmit: submit, className: "lf-sayform", style: { position: "relative", flex: 1, minWidth: 0 } }, /* @__PURE__ */ import_react7.default.createElement("label", { htmlFor: "lf-say", style: { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" } }, "说一句来记录"), /* @__PURE__ */ import_react7.default.createElement(
+    "input",
+    {
+      id: "lf-say",
+      ref: inputRef,
+      className: "lf-input",
+      value: text,
+      autoComplete: "off",
+      spellCheck: false,
+      placeholder: sayHint,
+      onChange: (e) => setText(e.target.value),
+      onFocus: () => setSayFocus(true),
+      onBlur: () => setSayFocus(false),
+      onCompositionStart: () => {
+        composing.current = true;
+      },
+      onCompositionEnd: () => {
+        composing.current = false;
+        setCompTick((x) => x + 1);
+      },
+      onKeyDown: (e) => {
+        if (e.key === "Escape") setText("");
       }
-    ), /* @__PURE__ */ import_react7.default.createElement("button", { type: "submit", className: "lf-send", disabled: !text.trim() || busy, "aria-label": "记下" }, busy ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-spin" }) : Icon.send)), /* @__PURE__ */ import_react7.default.createElement(GoalsButton, { goals, suggestions, onClick: openGoals })), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-below", style: { display: "flex", flexDirection: "column", justifyContent: "flex-start", gap: 10, minHeight: 100, marginTop: -12 } }, text.trim() && !settled ? /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, color: "rgba(244,245,241,.45)", minHeight: 20 } }, "说完停一下，我来理解这句话") : text.trim() ? /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10, opacity: typing ? 0.4 : 1, transition: "opacity .25s" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { gap: 10, fontSize: 13, color: "rgba(244,245,241,.55)", minHeight: 20 } }, typing ? /* @__PURE__ */ import_react7.default.createElement("span", null, "输入中，停一下就重新识别") : /* @__PURE__ */ import_react7.default.createElement(AiBadge, { status: aiFor, model: ai.model, error: ai.error }), !typing && aiFor !== "loading" && preview.records.length > 0 && /* @__PURE__ */ import_react7.default.createElement("span", null, "· 会影响 ", armedCards.size, " 张卡")), aiFor === "loading" ? /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-skel", style: { width: "62%" } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-skel", style: { width: "40%" } })) : preview.records.length > 0 ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 15, lineHeight: 1.7 } }, highlight(settled, preview.tokens)), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, preview.records.map((r) => r.type === "meal" && r.items ? /* @__PURE__ */ import_react7.default.createElement("div", { key: r.id, className: "lf-row", style: { flexWrap: "wrap", gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: "rgba(242,153,74,.18)", color: "#F8C08B" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2.food } }), MEAL_NAME[r.meal], " · 共 ", r.kcal, " 千卡"), r.items.map((it, k) => /* @__PURE__ */ import_react7.default.createElement("label", { key: k, className: "lf-chip", style: { background: "rgba(255,255,255,.08)", gap: 6, paddingRight: 6 }, title: "热量不对就改，下次会记住" }, /* @__PURE__ */ import_react7.default.createElement("span", null, it.name, it.qty !== 1 ? " ×" + it.qty : ""), /* @__PURE__ */ import_react7.default.createElement(
-      "input",
-      {
-        type: "number",
-        min: "0",
-        step: "10",
-        value: it.kcal,
-        onChange: (ev) => editKcal(it, ev.target.value),
-        "aria-label": it.name + " 的热量",
-        style: { width: 54, height: 22, border: 0, borderRadius: 6, background: it.source === "mine" ? "rgba(30,158,106,.35)" : "rgba(255,255,255,.1)", color: "#F4F5F1", font: "inherit", fontSize: 12.5, textAlign: "right", padding: "0 6px" }
-      }
-    ), /* @__PURE__ */ import_react7.default.createElement("span", { style: { opacity: 0.6 } }, "千卡")))) : /* @__PURE__ */ import_react7.default.createElement("div", { key: r.id, className: "lf-row", style: { flexWrap: "wrap", gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: "rgba(255,255,255,.1)" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2[domainOf(r)] } }), whenOf(r), labelOf(r)), r.title && r.type !== "workout" && r.type !== "sleep" && r.type !== "weight" && /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, color: "rgba(244,245,241,.6)" } }, r.title)))), preview.note ? /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 12.5, color: "rgba(244,245,241,.5)" } }, preview.note) : null) : /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 14, color: "rgba(244,245,241,.55)" } }, "还没听懂这句，换个说法试试")) : /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-idle-stack" + (sayFocus ? " focus" : "") }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-idle" }, goals.adopted.vision && goals.texts.vision ? /* @__PURE__ */ import_react7.default.createElement("span", { key: goals.texts.vision, className: "lf-vision" }, /* @__PURE__ */ import_react7.default.createElement("i", null), goals.texts.vision) : /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-story" }, storyOf(S2)), /* @__PURE__ */ import_react7.default.createElement(TodayNudges, { part: "tip", S: S2, ghosts, usual, focused: sayFocus, onPick: () => {
-    }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })), /* @__PURE__ */ import_react7.default.createElement(TodayNudges, { part: "sugs", S: S2, ghosts, usual, focused: sayFocus, onPick: (u) => {
-      setText(u);
-      inputRef.current && inputRef.current.focus();
-    }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })))), /* @__PURE__ */ import_react7.default.createElement("div", { ref: (el) => {
-      refs.current.dial = el;
-    }, "data-ev": "dial", style: { display: "grid" } }, /* @__PURE__ */ import_react7.default.createElement(Dial, { S: S2, hover, setHover })))
-  )), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-widgets", ref: gridRef, style: { display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridAutoRows: ROW_H + "px", gridAutoFlow: "dense", gap: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("energy", 1), cls: "s4", back: /* @__PURE__ */ import_react7.default.createElement(BackEnergy, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天还能吃"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "目标 ", num(GOALS.kcal), " 千卡")), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 6, margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { key: pulse.shake, "data-ev": "energy.num", className: pulse.shake ? "lf-shake" : "", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.allowance), style: { fontSize: 52, fontWeight: 500, lineHeight: 1, color: S2.allowance < 0 ? C2.link : C2.ink }, className: "lf-num" })), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.allowance < 0 ? "千卡，已超出" : "千卡")), /* @__PURE__ */ import_react7.default.createElement(EnergyTaste, { S: S2, pour: pulse.pour })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("money", 2), cls: "s4", bg: C2.money, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackMoney, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, S2.remaining < 0 ? "这个月已超支" : "这个月还能花"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, opacity: 0.8 } }, "还剩 ", S2.daysLeft, " 天"), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-printbtn" + (printOpen ? " on" : ""), onClick: () => setPrintOpen((v) => !v), "aria-label": printOpen ? "收起小票" : "打印今天的花销小票", title: "打印小票" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 9V3h10v6" }), /* @__PURE__ */ import_react7.default.createElement("rect", { x: "3", y: "9", width: "18", height: "8", rx: "2" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 14h10v7H7z" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M17.5 12h.01" }))))), /* @__PURE__ */ import_react7.default.createElement("div", { style: { margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { "data-ev": "money.num", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.remaining), format: money, style: { fontSize: 52, fontWeight: 500, lineHeight: 1 } }))), /* @__PURE__ */ import_react7.default.createElement(MoneyStrip, { S: S2, coin: pulse.coin })), /* @__PURE__ */ import_react7.default.createElement(NextCard, { P: P2, S: S2, onDone: doneEvent }), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("timeline", 4), cls: "s5 r2", style: { display: "flex", flexDirection: "column" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天记下的"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.timeline.length ? S2.timeline.length + " 件" : "还空着", ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length ? " · " + ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length + " 件没记" : "")), /* @__PURE__ */ import_react7.default.createElement(TodayList, { S: S2, ghosts, onFill: fillFrom, onRemove: removeGroup })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("sleep", 5), cls: "s4", bg: C2.sleep, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackSleep, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement(SleepSky, null), /* @__PURE__ */ import_react7.default.createElement(SleepBody, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("move", 6), cls: "s3", back: /* @__PURE__ */ import_react7.default.createElement(BackMove, { S: S2, workouts: db.records.filter((r) => r.type === "workout" && r.t >= S2.today - 6 * 864e5).sort((a, b) => b.t - a.t) }) }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "这周练了"), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "move.count", style: { display: "flex", alignItems: "baseline", gap: 6, margin: "12px 0 10px", alignSelf: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekWorkouts, style: { fontSize: 44, fontWeight: 500, lineHeight: 1 } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "/ ", GOALS.workoutsPerWeek, " 次 · ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekMinutes }), " 分钟")), /* @__PURE__ */ import_react7.default.createElement(MoveBars, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("insights", 7), cls: "s4" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 6 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "它们之间的关系"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, pinned ? "已钉住 · 点别处或按 Esc 取消" : "悬停看因果，点一下钉住")), S2.insights.length === 0 ? /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-sub", style: { margin: "12px 0" } }, "多记几天，这里会找出睡眠、吃饭、花钱之间的规律。") : /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column" } }, S2.insights.slice(0, 4).map((it, i) => /* @__PURE__ */ import_react7.default.createElement(
+    }
+  ), /* @__PURE__ */ import_react7.default.createElement("button", { type: "submit", className: "lf-send", disabled: !text.trim() || busy, "aria-label": "记下" }, busy ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-spin" }) : Icon.send)), /* @__PURE__ */ import_react7.default.createElement(GoalsButton, { goals, suggestions, onClick: openGoals })), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-below", style: { display: "flex", flexDirection: "column", justifyContent: "flex-start", gap: 10, minHeight: 100, marginTop: -12 } }, text.trim() && !settled ? /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, color: "rgba(244,245,241,.45)", minHeight: 20 } }, "说完停一下，我来理解这句话") : text.trim() ? /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10, opacity: typing ? 0.4 : 1, transition: "opacity .25s" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { gap: 10, fontSize: 13, color: "rgba(244,245,241,.55)", minHeight: 20 } }, typing ? /* @__PURE__ */ import_react7.default.createElement("span", null, "输入中，停一下就重新识别") : /* @__PURE__ */ import_react7.default.createElement(AiBadge, { status: aiFor, model: ai.model, error: ai.error }), !typing && aiFor !== "loading" && preview.records.length > 0 && /* @__PURE__ */ import_react7.default.createElement("span", null, "· 会影响 ", armedCards.size, " 张卡")), aiFor === "loading" ? /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-skel", style: { width: "62%" } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-skel", style: { width: "40%" } })) : preview.records.length > 0 ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 15, lineHeight: 1.7 } }, highlight(settled, preview.tokens)), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, preview.records.map((r) => r.type === "meal" && r.items ? /* @__PURE__ */ import_react7.default.createElement("div", { key: r.id, className: "lf-row", style: { flexWrap: "wrap", gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: "rgba(242,153,74,.18)", color: "#F8C08B" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2.food } }), MEAL_NAME[r.meal], " · 共 ", r.kcal, " 千卡"), r.items.map((it, k) => /* @__PURE__ */ import_react7.default.createElement("label", { key: k, className: "lf-chip", style: { background: "rgba(255,255,255,.08)", gap: 6, paddingRight: 6 }, title: "热量不对就改，下次会记住" }, /* @__PURE__ */ import_react7.default.createElement("span", null, it.name, it.qty !== 1 ? " ×" + it.qty : ""), /* @__PURE__ */ import_react7.default.createElement(
+    "input",
+    {
+      type: "number",
+      min: "0",
+      step: "10",
+      value: it.kcal,
+      onChange: (ev) => editKcal(it, ev.target.value),
+      "aria-label": it.name + " 的热量",
+      style: { width: 54, height: 22, border: 0, borderRadius: 6, background: it.source === "mine" ? "rgba(30,158,106,.35)" : "rgba(255,255,255,.1)", color: "#F4F5F1", font: "inherit", fontSize: 12.5, textAlign: "right", padding: "0 6px" }
+    }
+  ), /* @__PURE__ */ import_react7.default.createElement("span", { style: { opacity: 0.6 } }, "千卡")))) : /* @__PURE__ */ import_react7.default.createElement("div", { key: r.id, className: "lf-row", style: { flexWrap: "wrap", gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: "rgba(255,255,255,.1)" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2[domainOf(r)] } }), whenOf(r), labelOf(r)), r.title && r.type !== "workout" && r.type !== "sleep" && r.type !== "weight" && /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, color: "rgba(244,245,241,.6)" } }, r.title)))), preview.note ? /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 12.5, color: "rgba(244,245,241,.5)" } }, preview.note) : null) : /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 14, color: "rgba(244,245,241,.55)" } }, "还没听懂这句，换个说法试试")) : /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-idle-stack" + (sayFocus ? " focus" : "") }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-idle" }, goals.adopted.vision && goals.texts.vision ? /* @__PURE__ */ import_react7.default.createElement("span", { key: goals.texts.vision, className: "lf-vision" }, /* @__PURE__ */ import_react7.default.createElement("i", null), goals.texts.vision) : /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-story" }, storyOf(S2)), /* @__PURE__ */ import_react7.default.createElement(TodayNudges, { part: "tip", S: S2, ghosts, usual, focused: sayFocus, onPick: () => {
+  }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })), /* @__PURE__ */ import_react7.default.createElement(TodayNudges, { part: "sugs", S: S2, ghosts, usual, focused: sayFocus, onPick: (u) => {
+    setText(u);
+    inputRef.current && inputRef.current.focus();
+  }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })))), /* @__PURE__ */ import_react7.default.createElement("div", { ref: (el) => {
+    refs.current.dial = el;
+  }, "data-ev": "dial", style: { display: "grid" } }, /* @__PURE__ */ import_react7.default.createElement(Dial, { S: S2, hover, setHover }))))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-widgets", ref: gridRef, style: { display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridAutoRows: ROW_H + "px", gridAutoFlow: "dense", gap: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("energy", 1), cls: "s4", back: /* @__PURE__ */ import_react7.default.createElement(BackEnergy, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天还能吃"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "目标 ", num(GOALS.kcal), " 千卡")), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 6, margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { key: pulse.shake, "data-ev": "energy.num", className: pulse.shake ? "lf-shake" : "", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.allowance), style: { fontSize: 52, fontWeight: 500, lineHeight: 1, color: S2.allowance < 0 ? C2.link : C2.ink }, className: "lf-num" })), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.allowance < 0 ? "千卡，已超出" : "千卡")), /* @__PURE__ */ import_react7.default.createElement(EnergyTaste, { S: S2, pour: pulse.pour })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("money", 2), cls: "s4", bg: C2.money, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackMoney, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, S2.remaining < 0 ? "这个月已超支" : "这个月还能花"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, opacity: 0.8 } }, "还剩 ", S2.daysLeft, " 天"), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-printbtn" + (printOpen ? " on" : ""), onClick: () => setPrintOpen((v) => !v), "aria-label": printOpen ? "收起小票" : "打印今天的花销小票", title: "打印小票" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 9V3h10v6" }), /* @__PURE__ */ import_react7.default.createElement("rect", { x: "3", y: "9", width: "18", height: "8", rx: "2" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 14h10v7H7z" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M17.5 12h.01" }))))), /* @__PURE__ */ import_react7.default.createElement("div", { style: { margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { "data-ev": "money.num", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.remaining), format: money, style: { fontSize: 52, fontWeight: 500, lineHeight: 1 } }))), /* @__PURE__ */ import_react7.default.createElement(MoneyStrip, { S: S2, coin: pulse.coin })), /* @__PURE__ */ import_react7.default.createElement(NextCard, { P: P2, S: S2, onDone: doneEvent }), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("timeline", 4), cls: "s5 r2", style: { display: "flex", flexDirection: "column" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天记下的"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.timeline.length ? S2.timeline.length + " 件" : "还空着", ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length ? " · " + ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length + " 件没记" : "")), /* @__PURE__ */ import_react7.default.createElement(TodayList, { S: S2, ghosts, onFill: fillFrom, onRemove: removeGroup })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("sleep", 5), cls: "s4", bg: C2.sleep, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackSleep, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement(SleepSky, null), /* @__PURE__ */ import_react7.default.createElement(SleepBody, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("move", 6), cls: "s3", back: /* @__PURE__ */ import_react7.default.createElement(BackMove, { S: S2, workouts: db.records.filter((r) => r.type === "workout" && r.t >= S2.today - 6 * 864e5).sort((a, b) => b.t - a.t) }) }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "这周练了"), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "move.count", style: { display: "flex", alignItems: "baseline", gap: 6, margin: "12px 0 10px", alignSelf: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekWorkouts, style: { fontSize: 44, fontWeight: 500, lineHeight: 1 } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "/ ", GOALS.workoutsPerWeek, " 次 · ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekMinutes }), " 分钟")), /* @__PURE__ */ import_react7.default.createElement(MoveBars, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("insights", 7), cls: "s4" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 6 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "它们之间的关系"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, pinned ? "已钉住 · 点别处或按 Esc 取消" : "悬停看因果，点一下钉住")), S2.insights.length === 0 ? /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-sub", style: { margin: "12px 0" } }, "多记几天，这里会找出睡眠、吃饭、花钱之间的规律。") : /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column" } }, S2.insights.slice(0, 4).map((it, i) => /* @__PURE__ */ import_react7.default.createElement(
     "div",
     {
       key: it.id,

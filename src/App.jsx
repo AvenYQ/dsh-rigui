@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect, useContext } from 'react'
-import { HeroSky, WeatherBadge, WeekWeather, useWeather, WEATHER_CSS } from './weather.jsx'
+import { HeroSky, WeatherBadge, WeekWeather, toggleWx, useWeather, WEATHER_CSS } from './weather.jsx'
 import { DOMAIN, GOALS, setGoals, setWeather, eventTone, TONES, parse, fromAI, frequent, ghostSlots, derive, seed, effectsOf, completeEvent, todoToExpense, fmtTime, fmtHM, money, num, hourOf, startOfDay, MEAL_NAME, uid } from './data.js'
 import { CSS, FONT_HREF } from './styles.js'
 import { bindHover } from './hover.js'
@@ -837,7 +837,6 @@ export default function LifeApp() {
   // 天气 + 正在进行的日程 → 顶部大卡片的背景
   const weather = useWeather()
   const heroTone = S.nowEvent ? { key: eventTone(S.nowEvent), e: S.nowEvent } : null
-  const heroFlip = useRef(null)
   const todoEls = useRef({})
   const todoOrder = useDisplayOrder(S.todos.map((t) => t.id), 520)
   const shownTodos = todoOrder.map((id) => S.todos.find((t) => t.id === id)).filter(Boolean)
@@ -868,10 +867,10 @@ export default function LifeApp() {
         <div style={{ marginBottom: GAP }}>
 
           {/* 头部：一句话 + 表盘 */}
-          <Card {...P('hero', 0)} cls="s12" bg="#3B6FA8" color="#F4F5F1" style={{ padding: '32px 36px' }} tapFlip={false} flipRef={heroFlip}
-            back={<><HeroSky w={weather.w} now={now} tone={null} /><WeekWeather weather={weather} /></>}>
+          <Card {...P('hero', 0)} cls="s12" bg="#3B6FA8" color="#F4F5F1" style={{ padding: '32px 36px' }}>
             <HeroSky w={weather.w} now={now} tone={heroTone} />
-            <WeatherBadge weather={weather} tone={heroTone} now={now} onFlip={(e) => { e.stopPropagation(); heroFlip.current && heroFlip.current() }} />
+            <WeatherBadge weather={weather} tone={heroTone} now={now} onFlip={(e) => { e.stopPropagation(); toggleWx(e.currentTarget.closest('[data-card=hero]')) }} />
+            <div className="lf-wxback" aria-hidden="true"><WeekWeather weather={weather} /></div>
             <div className="lf-hero lf-hero-sky lf-glassy">
               <div className="lf-hero-left" style={{ display: 'flex', flexDirection: 'column', gap: 44, alignSelf: 'stretch', justifyContent: 'center', padding: '4px 0' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
