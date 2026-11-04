@@ -1,11 +1,16 @@
 export const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&display=swap'
 
 export const CSS = `
-.lf-root{--ink:#1F2328;--ink2:#5E645C;--ink3:#8A8F86;--ground:#E8EAE5;--card:#FFFFFF;--rule:#ECEEE9;
+.lf-root{--ink:#1F2328;--ink2:#5E645C;--ink3:#8A8F86;--ground:#E8EAE5;--card:#FFFFFF;--rule:#ECEEE9;--fill:#F1F2EE;--fill2:#E6E8E2;--line:#D5D8D1;--sheet:#F7F8F5;--move-ink:#157A51;--warn-ink:#9B1C20;--money-ink:#4B2FB0;--food-ink:#C26A1E;
   --sleep:#3D4FB8;--move:#1E9E6A;--food:#F2994A;--money:#7C5CE0;--body:#0E8A8A;--alert:#E5484D;
   position:relative;min-height:100%;box-sizing:border-box;background:var(--ground);color:var(--ink);
   font-family:'Bricolage Grotesque','PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;container-type:inline-size;container-name:lf;overflow:clip}
+/* 夜间：跟随 DSH 的深色主题（body[data-ds-dark-theme]） */
+body[data-ds-dark-theme] .lf-root{--ink:#E8E9E5;--ink2:#A7ACA4;--ink3:#7D827B;--ground:#111214;--card:#1B1D20;--rule:#2A2D31;--fill:#25282C;--fill2:#2E3136;--line:#3A3E44;--sheet:#16181A;
+  --move-ink:#5FD39C;--warn-ink:#FF8A8E;--money-ink:#BBA8F7;--food-ink:#F6B373;color-scheme:dark}
+body[data-ds-dark-theme] .lf-root .lf-card{box-shadow:inset 0 0 0 1px rgba(255,255,255,.04),var(--lift,0 0 #0000)}
+body[data-ds-dark-theme] .lf-host{background:#111214!important}
 .lf-root.lf-scrolling .lf-wrap{pointer-events:none}
 .lf-root *,.lf-root *::before,.lf-root *::after{box-sizing:border-box}
 .lf-root button{font:inherit;color:inherit;cursor:pointer}
@@ -29,10 +34,10 @@ export const CSS = `
 .lf-row{display:flex;align-items:center;gap:10px}
 .lf-chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;font-size:12.5px;white-space:nowrap}
 .lf-dot{width:8px;height:8px;border-radius:4px;flex:none}
-.lf-btn{height:36px;padding:0 14px;border-radius:18px;border:0;background:#F1F2EE;font-size:13px}
-.lf-btn:hover{background:#E4E6E0}
+.lf-btn{height:36px;padding:0 14px;border-radius:18px;border:0;background:var(--fill);font-size:13px}
+.lf-btn:hover{background:var(--fill2)}
 .lf-icon{width:32px;height:32px;border-radius:16px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink3)}
-.lf-icon:hover{background:#F1F2EE;color:var(--ink)}
+.lf-icon:hover{background:var(--fill);color:var(--ink)}
 .s12{grid-column:span 12}.s8{grid-column:span 8}.s7{grid-column:span 7}.s5{grid-column:span 5}.s4{grid-column:span 4}.s3{grid-column:span 3}.r2{grid-row:span 2}
 @container lf (max-width:1080px){.s8,.s7,.s5,.s4{grid-column:span 6}.s3{grid-column:span 6}.r2{grid-row:span 1}}
 @container lf (max-width:680px){.s12,.s8,.s7,.s5,.s4,.s3{grid-column:1/-1}.lf-hero{grid-template-columns:1fr!important}}
@@ -47,8 +52,8 @@ export const CSS = `
 .lf-send:not(:disabled):hover{transform:scale(1.06)}
 .lf-token{border-radius:8px;padding:1px 6px;margin:0 1px;font-weight:600;animation:lf-pop .25s cubic-bezier(.2,.9,.3,1.3)}
 .lf-tl-item{animation:lf-in .5s cubic-bezier(.2,.8,.2,1) both}
-.lf-check{width:22px;height:22px;border-radius:7px;border:1.5px solid #C9CDC5;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none;transition:all .2s}
-.lf-check.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.lf-check{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;flex:none;transition:all .2s}
+.lf-check.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .lf-arc{transition:opacity .25s,stroke-width .25s}
 .lf-arc:hover{stroke-width:24}
 .lf-enter{animation:lf-rise .7s cubic-bezier(.2,.8,.2,1) both}
@@ -75,17 +80,17 @@ export const CSS = `
 .lf-root.lf-scrolling .lf-grip,.lf-root.lf-scrolling .lf-resize{opacity:0}
 .lf-confirm{animation:lf-pop .2s cubic-bezier(.2,.9,.3,1.3)}
 .lf-ghost{display:flex;gap:14px;width:100%;border:0;background:transparent;padding:5px 0;text-align:left;align-items:stretch;color:inherit}
-.lf-ghost-time{width:44px;flex:none;font-size:13px;color:#8A8F86;padding-top:13px}
-.lf-ghost-box{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;align-items:center;padding:9px 10px 9px 14px;border-radius:14px;border:1.5px dashed #D5D8D1;transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s}
-.lf-ghost-title{font-size:15px;font-weight:500;color:#4A5048}
-.lf-ghost-hint{grid-column:1;font-size:13px;color:#6F756D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lf-ghost-cta{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#6F756D}
-.lf-ghost-plus{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#F1F2EE;color:#4A5048;font-size:18px;line-height:1;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,color .25s}
-.lf-ghost.due .lf-ghost-box{background:color-mix(in srgb,var(--g) 6%,#fff);animation:lf-ghost-breathe 2.8s ease-in-out infinite}
-.lf-ghost.due .lf-ghost-cta{color:color-mix(in srgb,var(--g) 55%,#1F2328);font-weight:600}
+.lf-ghost-time{width:44px;flex:none;font-size:13px;color:var(--ink3);padding-top:13px}
+.lf-ghost-box{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;align-items:center;padding:9px 10px 9px 14px;border-radius:14px;border:1.5px dashed var(--line);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s}
+.lf-ghost-title{font-size:15px;font-weight:500;color:var(--ink2)}
+.lf-ghost-hint{grid-column:1;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lf-ghost-cta{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2)}
+.lf-ghost-plus{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--fill);color:var(--ink2);font-size:18px;line-height:1;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,color .25s}
+.lf-ghost.due .lf-ghost-box{background:color-mix(in srgb,var(--g) 6%,var(--card));animation:lf-ghost-breathe 2.8s ease-in-out infinite}
+.lf-ghost.due .lf-ghost-cta{color:color-mix(in srgb,var(--g) 55%,var(--ink));font-weight:600}
 .lf-ghost.future{opacity:.6}
 .lf-ghost:hover,.lf-ghost:focus-visible{opacity:1}
-.lf-ghost:hover .lf-ghost-box,.lf-ghost:focus-visible .lf-ghost-box{border-style:solid;border-color:var(--g);background:color-mix(in srgb,var(--g) 10%,#fff);transform:translateX(4px);animation:none}
+.lf-ghost:hover .lf-ghost-box,.lf-ghost:focus-visible .lf-ghost-box{border-style:solid;border-color:var(--g);background:color-mix(in srgb,var(--g) 10%,var(--card));transform:translateX(4px);animation:none}
 .lf-ghost:hover .lf-ghost-plus,.lf-ghost:focus-visible .lf-ghost-plus{background:var(--g);color:#fff;transform:rotate(90deg) scale(1.08)}
 .lf-ghost:active .lf-ghost-box{transform:translateX(4px) scale(.98)}
 @keyframes lf-ghost-breathe{0%,100%{border-color:color-mix(in srgb,var(--g) 22%,transparent)}50%{border-color:color-mix(in srgb,var(--g) 65%,transparent)}}
@@ -118,7 +123,7 @@ export const CSS = `
 @keyframes lf-ring{from{transform:scale(.2);opacity:1}to{transform:scale(9);opacity:0}}
 .lf-todo{border-radius:12px}
 .lf-cascade{animation:lf-cascade .55s cubic-bezier(.2,.8,.2,1) both}
-@keyframes lf-cascade{0%{background:transparent;transform:none}40%{background:#DDF2E8;transform:translateX(6px)}100%{background:transparent;transform:none}}
+@keyframes lf-cascade{0%{background:transparent;transform:none}40%{background:color-mix(in srgb,#1E9E6A 14%,var(--card));transform:translateX(6px)}100%{background:transparent;transform:none}}
 .lf-alldone{flex:1;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding-top:8px}
 .lf-alldone.play .lf-ad-badge{animation:lf-badge .6s var(--delay) cubic-bezier(.2,.9,.3,1.45) both}
 .lf-alldone.play .lf-ad-check{stroke-dasharray:1;stroke-dashoffset:1;animation:lf-draw .4s calc(var(--delay) + .35s) ease-out forwards}
@@ -137,7 +142,7 @@ export const CSS = `
 @keyframes lf-evpop{0%{outline-offset:12px;box-shadow:0 0 0 0 transparent}100%{outline-offset:4px}}
 .lf-think{display:inline-flex;gap:3px}.lf-think i{width:5px;height:5px;border-radius:3px;background:#F2994A;animation:lf-bounce 1s infinite ease-in-out}
 .lf-think i:nth-child(2){animation-delay:.15s;background:#7C5CE0}.lf-think i:nth-child(3){animation-delay:.3s;background:#1E9E6A}
-.lf-spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(31,35,40,.25);border-top-color:#1F2328;animation:lf-rot .7s linear infinite}
+.lf-spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(31,35,40,.25);border-top-color:var(--ink);animation:lf-rot .7s linear infinite}
 .lf-root input[type=number]::-webkit-inner-spin-button{opacity:.4}
 @keyframes lf-bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}
 @keyframes lf-rot{to{transform:rotate(360deg)}}
@@ -146,7 +151,7 @@ export const CSS = `
 @keyframes lf-march{to{stroke-dashoffset:-.024}}
 @keyframes lf-flash{0%{box-shadow:0 0 0 0 var(--c)}25%{box-shadow:0 0 0 2px var(--ground),0 0 0 5px var(--c);transform:translateY(-3px)}100%{box-shadow:0 0 0 0 transparent;transform:none}}
 @keyframes lf-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes lf-in{from{opacity:0;transform:translateX(-10px);background:#FFF6EC}to{opacity:1;transform:none}}
+@keyframes lf-in{from{opacity:0;transform:translateX(-10px);background:color-mix(in srgb,#F2994A 10%,var(--card))}to{opacity:1;transform:none}}
 @keyframes lf-pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
 @keyframes lf-breathe{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.lf-root *{animation:none!important;transition:none!important}.lf-dialdraw,.lf-thread{stroke-dashoffset:0}}

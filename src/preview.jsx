@@ -24,10 +24,11 @@ function Shell() {
         <div style={{ fontSize: 12, color: '#999', padding: '18px 10px 6px' }}>最近会话</div>
         {['周末去哪儿', '读书笔记整理', '换季衣橱清单'].map((s) => <Row key={s} icon={null} label={s} onClick={() => setOn(false)} />)}
       </aside>
-      <main style={{ flex: 1, minWidth: 0, overflow: 'auto', background: on ? '#E8EAE5' : '#fff' }}>
+      <main style={{ flex: 1, minWidth: 0, overflow: 'auto', background: on ? 'var(--pv-ground, #E8EAE5)' : '#fff' }}>
         {on ? <LifeApp /> : <div style={{ padding: 40, color: '#999' }}>（DSH 原本的页面）</div>}
       </main>
     </div>
   )
 }
+if (/[?&]dark\b/.test(location.search)) document.body.setAttribute('data-ds-dark-theme', '')
 createRoot(document.getElementById('root')).render(<Shell />)

@@ -249,7 +249,7 @@ function Card({ id, cls = '', bg, color, refs, flash, armed, hl, dim, children, 
   return (
     <section ref={(n) => { el.current = n; refs.current[id] = n }} data-card={id} data-face={face} onClick={onCardClick}
       className={['lf-card', back ? 'has-back' : '', entered ? '' : 'lf-enter', W ? 'lf-widget' : cls, armed ? 'armed' : '', hl ? 'hl' : '', dim ? 'dim' : '', clip ? 'clip' : '', dragging ? 'lf-lifted' : ''].join(' ')}
-      style={Object.assign({ background: bg, color, '--c': CARD_COLOR[id] || '#1F2328', '--bgc': bg || '#FFFFFF', '--sheen-c': color && color !== '#1F2328' ? 'rgba(255,255,255,.2)' : undefined, animationDelay: 0.15 + idx * 0.05 + 's' },
+      style={Object.assign({ background: bg, color, '--c': CARD_COLOR[id] || '#1F2328', '--bgc': bg || 'var(--card)', '--sheen-c': color && color !== '#1F2328' ? 'rgba(255,255,255,.2)' : undefined, animationDelay: 0.15 + idx * 0.05 + 's' },
         lay ? { gridColumn: 'span ' + lay.span, gridRow: 'span ' + lay.h, order: lay.order } : null, W ? null : style)}>
       {W ? <div className="lf-widget-body" style={style}><FlipCtx.Provider value={flip}>{face && back ? back : children}</FlipCtx.Provider></div> : children}
       {W && back && <button type="button" className="lf-flip" aria-label={face ? '翻回正面' : '翻到背面，看看怎么算的'} title={face ? '翻回去' : '看看怎么算的'} onClick={flip}>
@@ -474,7 +474,7 @@ export default function LifeApp() {
       if (r.type === 'meal') out.push({ card: 'energy', text: '+' + num(r.kcal) + ' 千卡', color: '#C2410C' })
       if (r.type === 'expense') out.push({ card: 'money', text: '−' + money(r.amount), color: '#fff' })
       if (r.type === 'income') out.push({ card: 'money', text: '+' + money(r.amount), color: '#fff' })
-      if (r.type === 'workout') { out.push({ card: 'move', text: '+' + r.minutes + ' 分钟', color: '#157A51' }); out.push({ card: 'energy', text: '额度 +' + num(r.kcal), color: '#157A51' }) }
+      if (r.type === 'workout') { out.push({ card: 'move', text: '+' + r.minutes + ' 分钟', color: 'var(--move-ink)' }); out.push({ card: 'energy', text: '额度 +' + num(r.kcal), color: 'var(--move-ink)' }) }
       if (r.type === 'sleep') out.push({ card: 'sleep', text: fmtHM(r.hours), color: '#fff' })
       if (r.type === 'weight') out.push({ card: 'body', text: r.kg + ' kg', color: '#0E6E6E' })
     })
@@ -1015,13 +1015,13 @@ export default function LifeApp() {
                   <div key={it.id} tabIndex={0} role="button" aria-pressed={!!pinned && pinned.id === it.id}
                     onMouseMove={() => setFocusInsight((f) => (f && f.id === it.id ? f : it))} onMouseLeave={() => setFocusInsight(null)} onFocus={() => setFocusInsight(it)} onBlur={() => setFocusInsight(null)}
                     onClick={() => setPinned((p0) => (p0 && p0.id === it.id ? null : it))} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPinned((p0) => (p0 && p0.id === it.id ? null : it)) } }}
-                    className={'lf-tl-item lf-insight' + (shownInsight && shownInsight.id === it.id ? ' on' : '') + (pinned && pinned.id === it.id ? ' pinned' : '')} style={{ display: 'flex', gap: 12, padding: '11px 8px', margin: '0 -8px', borderTop: i ? '1px solid #ECEEE9' : 0, cursor: 'pointer', animationDelay: i * 0.06 + 's' }}>
+                    className={'lf-tl-item lf-insight' + (shownInsight && shownInsight.id === it.id ? ' on' : '') + (pinned && pinned.id === it.id ? ' pinned' : '')} style={{ display: 'flex', gap: 12, padding: '11px 8px', margin: '0 -8px', borderTop: i ? '1px solid var(--rule)' : 0, cursor: 'pointer', animationDelay: i * 0.06 + 's' }}>
                     <span data-ev={'insight.' + it.id} style={{ display: 'flex', alignItems: 'center', paddingTop: 4, flex: 'none', alignSelf: 'flex-start' }}>
-                      <span className="lf-dot" style={{ background: C[it.from], width: 10, height: 10, borderRadius: 5 }} />
-                      <span style={{ width: 12, height: 2, background: '#D5D8D1' }} />
-                      <span className="lf-dot" style={{ background: C[it.to], width: 10, height: 10, borderRadius: 5 }} />
+                      <span className="lf-dot" style={{ background: it.from === 'time' ? 'var(--ink)' : C[it.from], width: 10, height: 10, borderRadius: 5 }} />
+                      <span style={{ width: 12, height: 2, background: 'var(--line)' }} />
+                      <span className="lf-dot" style={{ background: it.to === 'time' ? 'var(--ink)' : C[it.to], width: 10, height: 10, borderRadius: 5 }} />
                     </span>
-                    <span style={{ fontSize: 14, lineHeight: 1.55, color: it.tone === 'warn' ? '#9B1C20' : C.ink }}>{it.text}</span>
+                    <span style={{ fontSize: 14, lineHeight: 1.55, color: it.tone === 'warn' ? 'var(--warn-ink)' : C.ink }}>{it.text}</span>
                   </div>
                 ))}
               </div>
@@ -1037,7 +1037,7 @@ export default function LifeApp() {
               <span className="lf-sub">kg</span>
             </div>
             <div data-ev="body.line" style={{ flex: 1, minHeight: 56, margin: '4px 0 8px' }}><WeightScrub weights={S.weights} now={S.now}><WeightLine weights={S.weights} now={S.now} /></WeightScrub></div>
-            <span style={{ fontSize: 13, color: S.wDelta != null && S.wDelta <= 0 ? '#157A51' : '#5E645C' }}>
+            <span style={{ fontSize: 13, color: S.wDelta != null && S.wDelta <= 0 ? 'var(--move-ink)' : 'var(--ink2)' }}>
               {goals.adopted.monthWeight && S.wNow != null ? 'Boss 战：30 天到 ' + goals.monthWeight + ' kg，' + (S.wNow <= goals.monthWeight ? '已经打赢了' : '还差 ' + (S.wNow - goals.monthWeight).toFixed(1) + ' kg') : S.wDelta == null ? (S.wNow != null ? '记满一周就能看到变化' : '说「体重 68.2」开始记录') : '一周 ' + (S.wDelta <= 0 ? '−' : '+') + Math.abs(S.wDelta).toFixed(1) + ' kg'}
             </span>
           </Card>
@@ -1084,7 +1084,7 @@ export default function LifeApp() {
             {allDone && !sweeping && (
               <div key={allDoneAt || 'static'} className={'lf-alldone' + (finale ? ' play' : '')} style={{ '--delay': finaleAt + 's' }}>
                 <svg className="lf-ad-badge" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
-                  <circle cx="32" cy="32" r="30" fill="#DDF2E8" />
+                  <circle cx="32" cy="32" r="30" style={{ fill: 'color-mix(in srgb,#1E9E6A 14%,var(--card))' }} />
                   <circle cx="32" cy="32" r="22" fill="#1E9E6A" />
                   <path className="lf-ad-check" d="M22 32.5l7 7L42.5 25" fill="none" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" pathLength="1" />
                 </svg>
@@ -1103,19 +1103,19 @@ export default function LifeApp() {
           </Card>
         </div>
 
-        <footer className="lf-row" style={{ justifyContent: 'space-between', marginTop: 18, padding: '0 6px', fontSize: 13, color: '#5E645C', flexWrap: 'wrap' }}>
+        <footer className="lf-row" style={{ justifyContent: 'space-between', marginTop: 18, padding: '0 6px', fontSize: 13, color: 'var(--ink2)', flexWrap: 'wrap' }}>
           <span>数据存在这台电脑上 · ⌘K 随时记一句 · 按住卡片顶部的小横条换位置，拖右下角放大缩小</span>
           <span className="lf-row" style={{ gap: 6 }}>
             {customized && <button className="lf-btn" onClick={resetLayout}>恢复默认布局</button>}
             {confirm === 'clear' ? (
               <span className="lf-row lf-confirm" role="alert" style={{ gap: 8 }}>
-                <span style={{ color: '#9B1C20' }}>{db.sample ? '清空示例数据' : '删除全部 ' + db.records.length + ' 条记录'}{realCount > 0 && db.sample ? '（含你自己记的 ' + realCount + ' 条）' : ''}，确定吗？</span>
+                <span style={{ color: 'var(--warn-ink)' }}>{db.sample ? '清空示例数据' : '删除全部 ' + db.records.length + ' 条记录'}{realCount > 0 && db.sample ? '（含你自己记的 ' + realCount + ' 条）' : ''}，确定吗？</span>
                 <button className="lf-btn" onClick={() => setConfirm(null)}>取消</button>
                 <button className="lf-btn" autoFocus onClick={clearSample} style={{ background: '#E5484D', color: '#fff' }}>确定清空</button>
               </span>
             ) : confirm === 'sample' ? (
               <span className="lf-row lf-confirm" role="alert" style={{ gap: 8 }}>
-                <span style={{ color: '#9B1C20' }}>示例数据会替换掉你现在的 {db.records.length} 条记录，确定吗？</span>
+                <span style={{ color: 'var(--warn-ink)' }}>示例数据会替换掉你现在的 {db.records.length} 条记录，确定吗？</span>
                 <button className="lf-btn" onClick={() => setConfirm(null)}>取消</button>
                 <button className="lf-btn" autoFocus onClick={restoreSample} style={{ background: '#E5484D', color: '#fff' }}>确定替换</button>
               </span>
@@ -1208,7 +1208,7 @@ function TodayList({ S, ghosts, onFill, onRemove }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {S.timeline.length === 0 && (
-        <p className="lf-enter" style={{ margin: '2px 0 10px', fontSize: 13.5, lineHeight: 1.6, color: '#5E645C' }}>
+        <p className="lf-enter" style={{ margin: '2px 0 10px', fontSize: 13.5, lineHeight: 1.6, color: 'var(--ink2)' }}>
           今天还没记。按你平时的习惯，先把今天的空位摆出来了，点一个就能补上。
         </p>
       )}
@@ -1235,15 +1235,15 @@ function TodayList({ S, ghosts, onFill, onRemove }) {
         }
         const g = e.g
         return (
-          <div key={e.key} className="lf-tl-item" style={{ display: 'flex', gap: 14, padding: '12px 0', borderTop: prev && prev.kind === 'real' ? '1px solid #ECEEE9' : 0, alignItems: 'flex-start' }}>
-            <span className="lf-num" style={{ width: 44, fontSize: 13, color: '#5E645C', paddingTop: 3, flex: 'none' }}>{fmtTime(g.t)}</span>
+          <div key={e.key} className="lf-tl-item" style={{ display: 'flex', gap: 14, padding: '12px 0', borderTop: prev && prev.kind === 'real' ? '1px solid var(--rule)' : 0, alignItems: 'flex-start' }}>
+            <span className="lf-num" style={{ width: 44, fontSize: 13, color: 'var(--ink2)', paddingTop: 3, flex: 'none' }}>{fmtTime(g.t)}</span>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontSize: 15, fontWeight: 500 }}>{g.wake ? '醒来' : g.items[0].type === 'weight' ? <Private>{g.items[0].title || labelOf(g.items[0])}</Private> : g.items[0].title || labelOf(g.items[0])}</span>
               <div className="lf-row" style={{ gap: 6, flexWrap: 'wrap' }}>
                 {g.items.map((r, j) => (
                   <React.Fragment key={r.id}>
                     {j > 0 && <span style={{ color: '#B4B8B0', display: 'inline-flex' }}>{Icon.arrow}</span>}
-                    <span className="lf-chip" style={{ background: DOMAIN[domainOf(r)].soft, color: '#2B2F2A', height: 24 }}><span className="lf-dot" style={{ background: C[domainOf(r)] }} />{r.type === 'weight' ? <Private>{labelOf(r)}</Private> : labelOf(r)}</span>
+                    <span className="lf-chip" style={{ background: DOMAIN[domainOf(r)].soft, color: 'var(--ink)', height: 24 }}><span className="lf-dot" style={{ background: C[domainOf(r)] }} />{r.type === 'weight' ? <Private>{labelOf(r)}</Private> : labelOf(r)}</span>
                   </React.Fragment>
                 ))}
               </div>
@@ -1280,7 +1280,7 @@ function NextCard({ P, S, onDone }) {
         <div className="lf-num" style={{ fontSize: 14, opacity: 0.8, marginTop: 6 }}>{fmtTime(n.t)} – {fmtTime(n.end || n.t + 3600000)}</div>
       </div>
       {S.nextAdvice && <div style={{ fontSize: 13.5, lineHeight: 1.5, background: 'rgba(255,255,255,.14)', borderRadius: 14, padding: '9px 12px' }}>{S.nextAdvice}</div>}
-      {isMove && <button onClick={() => onDone(n)} style={{ alignSelf: 'flex-start', height: 40, padding: '0 18px', borderRadius: 20, border: 0, background: '#fff', color: C.move, fontWeight: 600, fontSize: 14 }}>练完了，记下</button>}
+      {isMove && <button onClick={() => onDone(n)} style={{ alignSelf: 'flex-start', height: 40, padding: '0 18px', borderRadius: 20, border: 0, background: 'var(--card)', color: C.move, fontWeight: 600, fontSize: 14 }}>练完了，记下</button>}
     </Card>
   )
 }
@@ -1291,8 +1291,8 @@ function EnergyBar({ S, pour }) {
   let acc = 0
   return (
     <div style={{ position: 'relative', height: 26 }}>
-      <div style={{ position: 'absolute', inset: '7px 0', borderRadius: 6, background: '#F1F2EE' }} />
-      <div style={{ position: 'absolute', top: 7, height: 12, left: 0, width: pct(GOALS.kcal), borderRadius: 6, background: '#E4E6E0', transition: 'width .8s' }} />
+      <div style={{ position: 'absolute', inset: '7px 0', borderRadius: 6, background: 'var(--fill)' }} />
+      <div style={{ position: 'absolute', top: 7, height: 12, left: 0, width: pct(GOALS.kcal), borderRadius: 6, background: 'var(--fill2)', transition: 'width .8s' }} />
       {S.burned > 0 && <div style={{ position: 'absolute', top: 7, height: 12, left: pct(GOALS.kcal), width: pct(S.burned), borderRadius: '0 6px 6px 0', background: 'repeating-linear-gradient(135deg, #BFE6D3 0 4px, #DDF2E8 4px 8px)', transition: 'all .8s cubic-bezier(.2,.8,.2,1)' }} />}
       {S.meals.map((m, i) => { const l = acc; acc += m.kcal; return <div key={m.id} title={m.title + ' ' + m.kcal} style={{ position: 'absolute', top: 7, height: 12, left: pct(l), width: `calc(${pct(m.kcal)} - 2px)`, borderRadius: 4, background: i % 2 ? '#F8C08B' : C.food, transition: 'all .8s cubic-bezier(.2,.8,.2,1)' }} /> })}
       <div style={{ position: 'absolute', top: 0, bottom: 0, left: pct(GOALS.kcal + S.burned), width: 2, borderRadius: 1, background: C.ink, transition: 'left .8s cubic-bezier(.2,.8,.2,1)' }} />
@@ -1338,13 +1338,13 @@ function useFlipList(els, order) {
           n.style.zIndex = 2
           const a = n.animate(down ? [
             { transform: `translateY(${dy}px)`, boxShadow: '0 0 0 rgba(0,0,0,0)', background: 'rgba(255,255,255,0)' },
-            { transform: `translate(14px, ${dy * 0.55}px) rotate(1.8deg) scale(1.03)`, boxShadow: '0 14px 28px -12px rgba(31,35,40,.3)', background: '#fff', offset: 0.42 },
-            { transform: 'translate(2px, 4px) scale(1.015, .94)', boxShadow: '0 4px 10px -6px rgba(31,35,40,.2)', background: '#fff', offset: 0.78 },
+            { transform: `translate(14px, ${dy * 0.55}px) rotate(1.8deg) scale(1.03)`, boxShadow: '0 14px 28px -12px rgba(31,35,40,.3)', background: 'var(--card)', offset: 0.42 },
+            { transform: 'translate(2px, 4px) scale(1.015, .94)', boxShadow: '0 4px 10px -6px rgba(31,35,40,.2)', background: 'var(--card)', offset: 0.78 },
             { transform: 'translateY(-2px) scale(.995, 1.02)', offset: 0.9 },
             { transform: 'none', boxShadow: '0 0 0 rgba(0,0,0,0)', background: 'rgba(255,255,255,0)' },
           ] : [
             { transform: `translateY(${dy}px)`, background: 'rgba(255,255,255,0)' },
-            { transform: `translate(-10px, ${dy * 0.5}px) rotate(-1.5deg) scale(1.03)`, background: '#fff', boxShadow: '0 12px 24px -12px rgba(30,158,106,.35)', offset: 0.45 },
+            { transform: `translate(-10px, ${dy * 0.5}px) rotate(-1.5deg) scale(1.03)`, background: 'var(--card)', boxShadow: '0 12px 24px -12px rgba(30,158,106,.35)', offset: 0.45 },
             { transform: 'translateY(-5px) scale(1.01)', offset: 0.75 },
             { transform: 'none', background: 'rgba(255,255,255,0)', boxShadow: '0 0 0 rgba(0,0,0,0)' },
           ], { duration: 640, easing: 'cubic-bezier(.3,.7,.35,1)' })
@@ -1371,7 +1371,7 @@ function TodoRow({ arrived = -1, onLanded, rowRef, t, i, onToggle, onEdit, onDel
   const [, tick] = useState(0)
   useEffect(() => { if (phase !== 'undo') return; const iv = setInterval(() => tick((x) => x + 1), 250); return () => clearInterval(iv) }, [phase])
   const left = dying && dying.end ? Math.max(1, Math.ceil((dying.end - Date.now()) / 1000)) : 0
-  const base = { borderTop: i ? '1px solid #ECEEE9' : 0, animationDelay: delay }
+  const base = { borderTop: i ? '1px solid var(--rule)' : 0, animationDelay: delay }
   if (phase === 'undo' || phase === 'gone') {
     return (
       <div ref={rowRef} className={'lf-row lf-todo lf-todo-undo' + (phase === 'gone' ? ' gone' : '')} style={base} role="status">
@@ -1401,11 +1401,11 @@ function TodoRow({ arrived = -1, onLanded, rowRef, t, i, onToggle, onEdit, onDel
         <>
           <button type="button" className="lf-todo-hit" onClick={(ev) => !dying && onToggle(t, ev)} aria-pressed={t.done} disabled={!!dustOn}>
             <span className={'lf-check' + (t.done ? ' on' : '')}>{t.done && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path className="lf-tick" d="M5 12.5l4.5 4.5L19 7.5" pathLength="1" /></svg>}</span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 15, color: t.done ? '#8A8F86' : C.ink, transition: 'color .3s' }}>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 15, color: t.done ? 'var(--ink3)' : C.ink, transition: 'color .3s' }}>
               <span className="lf-strike">{chars.map((c, k) => <span key={k} className="lf-ch" style={{ '--dx': dust[k].x + 'px', '--dy': dust[k].y + 'px', '--rot': dust[k].rot + 'deg', '--s': dust[k].s, '--i': k }}>{c}</span>)}</span>
             </span>
           </button>
-          {t.amount ? <span className="lf-chip lf-todo-amt" data-ev={evAmount ? 'todos.amount' : undefined} style={{ background: t.done ? '#F1F2EE' : DOMAIN.money.soft, color: t.done ? '#8A8F86' : '#4B2FB0', height: 24 }}>{money(t.amount)}</span> : null}
+          {t.amount ? <span className="lf-chip lf-todo-amt" data-ev={evAmount ? 'todos.amount' : undefined} style={{ background: t.done ? 'var(--fill)' : DOMAIN.money.soft, color: t.done ? 'var(--ink3)' : 'var(--money-ink)', height: 24 }}>{money(t.amount)}</span> : null}
           <span className="lf-todo-acts">
             <button type="button" className="lf-todo-act" onClick={startEdit} aria-label={'改「' + t.title + '」'} title="改一下">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="M13.5 6.5l4 4" /></svg>
@@ -1442,7 +1442,7 @@ function BackTodos({ records, today, onRestore }) {
     <div className="lf-back">
       <div className="lf-row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
         <h2 className="lf-h">做完收起来的</h2>
-        <span style={{ fontSize: 12, color: '#8A8F86' }}>{list.length ? '共 ' + list.length + ' 件 · ' : ''}点空白处翻回去</span>
+        <span style={{ fontSize: 12, color: 'var(--ink3)' }}>{list.length ? '共 ' + list.length + ' 件 · ' : ''}点空白处翻回去</span>
       </div>
       {list.length === 0 ? <p className="lf-sub" style={{ margin: '8px 0' }}>还没有收起来的事。清掉已完成的、或者前一天做完的，都会到这里。</p> : (
         <div className="lf-archive lf-inner-scroll">
@@ -1515,7 +1515,7 @@ function EnergyTaste({ S, pour }) {
           <div className="lf-taste-tip" style={{ left: `clamp(20px, ${pct(t.k)}, calc(100% - 20px))`, color: t.left < 0 ? '#C8373C' : undefined }}>+{num(t.more)}</div>
         )}
       </div>
-      <div className="lf-row" style={{ justifyContent: 'space-between', marginTop: 12, fontSize: 13, color: '#5E645C', minHeight: 18 }}>
+      <div className="lf-row" style={{ justifyContent: 'space-between', marginTop: 12, fontSize: 13, color: 'var(--ink2)', minHeight: 18 }}>
         {!t ? (
           <>
             <span className="lf-row" data-ev="energy.eaten" style={{ gap: 6 }}><span className="lf-dot" style={{ background: C.food }} />吃了 <Num value={S.kcalIn} /></span>
@@ -1525,7 +1525,7 @@ function EnergyTaste({ S, pour }) {
           <span key="meal" className="lf-swap lf-tab" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.meal ? fmtTime(t.meal.t) + ' ' + (MEAL_NAME[t.meal.meal] || '') + ' · ' + t.meal.title + ' · ' + num(t.meal.kcal) + ' 千卡' : '今天还没吃东西'}</span>
         ) : (
           <>
-            <span className="lf-swap lf-tab" key="t1">要是再吃 <b style={{ color: '#C26A1E' }}>{num(t.more)}</b> 千卡</span>
+            <span className="lf-swap lf-tab" key="t1">要是再吃 <b style={{ color: 'var(--food-ink)' }}>{num(t.more)}</b> 千卡</span>
             <span className="lf-swap lf-tab" key="t2" style={{ color: t.left < 0 ? C.link : undefined }}>{t.left < 0 ? '会超出 ' + num(-t.left) : '还剩 ' + num(t.left)}</span>
           </>
         )}
@@ -1587,7 +1587,7 @@ function WeightLine({ weights, now }) {
   const last = pts[pts.length - 1]
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block' }} role="img" aria-label={'30 天体重从 ' + pts[0].kg + ' 到 ' + last.kg}>
-      <path d={d + ` L${x(last.t)} ${H} L4 ${H} Z`} fill="#D9F0EF" />
+      <path d={d + ` L${x(last.t)} ${H} L4 ${H} Z`} style={{ fill: 'color-mix(in srgb,#0E8A8A 16%,var(--card))' }} />
       <path d={d} fill="none" stroke={C.body} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="lf-fadein" />
     </svg>
   )
@@ -1607,19 +1607,19 @@ function WeekBoard({ S }) {
     <>
       <div className="lf-row" style={{ justifyContent: 'space-between', marginBottom: 14 }}>
         <h2 className="lf-h">接下来七天</h2>
-        <span className="lf-sub" style={{ color: clashDay ? '#9B1C20' : undefined }}>{clashDay ? clashDay.label + ' 有两个安排撞了' : '没有冲突'}</span>
+        <span className="lf-sub" style={{ color: clashDay ? 'var(--warn-ink)' : undefined }}>{clashDay ? clashDay.label + ' 有两个安排撞了' : '没有冲突'}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0,1fr))', gap: 8 }}>
         {days.map((d, i) => (
           <div key={d.day} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-            <div className="lf-row" style={{ gap: 6, height: 40, borderRadius: 14, justifyContent: 'center', background: i === 0 ? '#1F2328' : '#F1F2EE', color: i === 0 ? '#fff' : C.ink, fontSize: 13 }}>
+            <div className="lf-row" style={{ gap: 6, height: 40, borderRadius: 14, justifyContent: 'center', background: i === 0 ? 'var(--ink)' : 'var(--fill)', color: i === 0 ? 'var(--card)' : C.ink, fontSize: 13 }}>
               <span style={{ opacity: 0.75 }}>{d.label}</span><b className="lf-num">{d.date}</b>
             </div>
-            {d.evs.length === 0 && <span style={{ height: 44, borderRadius: 12, border: '1.5px dashed #DADDD6' }} />}
+            {d.evs.length === 0 && <span style={{ height: 44, borderRadius: 12, border: '1.5px dashed var(--line)' }} />}
             {d.evs.map((e) => {
               const clash = d.clash.has(e.id), move = e.domain === 'move', tc = TONES[eventTone(e)]
               return (
-                <div key={e.id} data-ev={nextMove && e.id === nextMove.id ? 'week.move' : undefined} style={{ borderRadius: 12, padding: '7px 9px', minWidth: 0, background: clash ? '#FDE4E4' : move ? (e.done ? '#DDF2E8' : C.move) : e.t < S.now ? '#F1F2EE' : tc, color: clash ? '#9B1C20' : move ? (e.done ? '#157A51' : '#fff') : e.t < S.now ? '#8A8F86' : '#fff', boxShadow: clash ? 'inset 0 0 0 1.5px #E5484D' : 'none' }}>
+                <div key={e.id} data-ev={nextMove && e.id === nextMove.id ? 'week.move' : undefined} style={{ borderRadius: 12, padding: '7px 9px', minWidth: 0, background: clash ? 'color-mix(in srgb,#E5484D 13%,var(--card))' : move ? (e.done ? 'color-mix(in srgb,#1E9E6A 14%,var(--card))' : C.move) : e.t < S.now ? 'var(--fill)' : tc, color: clash ? 'var(--warn-ink)' : move ? (e.done ? 'var(--move-ink)' : '#fff') : e.t < S.now ? 'var(--ink3)' : '#fff', boxShadow: clash ? 'inset 0 0 0 1.5px #E5484D' : 'none' }}>
                   <div className="lf-num" style={{ fontSize: 11, opacity: 0.8 }}>{fmtTime(e.t)}{e.done ? ' · 已完成' : ''}</div>
                   <div style={{ fontSize: 12.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.title}</div>
                 </div>

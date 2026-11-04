@@ -36,16 +36,17 @@ export function WeightFog({ label = '擦一擦玻璃，看看体重' }) {
       ctx.globalCompositeOperation = 'source-over'
       // 雾：带一点冷色的磨砂白
       const g = ctx.createLinearGradient(0, 0, w, h)
-      g.addColorStop(0, 'rgb(234,239,237)'); g.addColorStop(1, 'rgb(224,231,229)')
+      const dk = document.body.hasAttribute('data-ds-dark-theme')
+      g.addColorStop(0, dk ? 'rgb(52,57,60)' : 'rgb(234,239,237)'); g.addColorStop(1, dk ? 'rgb(42,46,49)' : 'rgb(224,231,229)')
       ctx.fillStyle = g; ctx.fillRect(0, 0, w, h)
       // 细密的颗粒
       let s = 11; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280
-      for (let i = 0; i < (w * h) / 55; i++) { ctx.fillStyle = `rgba(255,255,255,${0.25 + r() * 0.5})`; ctx.fillRect(r() * w, r() * h, 1.2, 1.2) }
+      for (let i = 0; i < (w * h) / 55; i++) { ctx.fillStyle = `rgba(255,255,255,${(dk ? 0.06 : 0.25) + r() * (dk ? 0.12 : 0.5)})`; ctx.fillRect(r() * w, r() * h, 1.2, 1.2) }
       // 水珠
       for (let i = 0; i < 26; i++) {
         const x = r() * w, y = r() * h, rr = 1.5 + r() * 3.5
         const dg = ctx.createRadialGradient(x - rr * 0.3, y - rr * 0.3, 0, x, y, rr)
-        dg.addColorStop(0, 'rgba(255,255,255,.95)'); dg.addColorStop(0.7, 'rgba(210,220,218,.6)'); dg.addColorStop(1, 'rgba(180,195,192,.25)')
+        dg.addColorStop(0, dk ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.95)'); dg.addColorStop(0.7, dk ? 'rgba(120,130,130,.35)' : 'rgba(210,220,218,.6)'); dg.addColorStop(1, dk ? 'rgba(90,100,100,.15)' : 'rgba(180,195,192,.25)')
         ctx.fillStyle = dg; ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill()
       }
     }

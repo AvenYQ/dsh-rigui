@@ -359,20 +359,20 @@ export const RECEIPT_CSS = `
 .lf-print-toast{position:absolute;left:50%;translate:-50% 0;z-index:3;padding:7px 14px;border-radius:16px;background:#1F2328;color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap;box-shadow:0 10px 24px -10px rgba(0,0,0,.5);animation:lf-swap .3s cubic-bezier(.2,.9,.3,1.3) both}
 .lf-paper-bar{display:flex;align-items:center;gap:6px;width:max-content;position:relative;left:50%;translate:-50% 0;margin:12px 0 0;padding:5px;border-radius:20px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);box-shadow:0 8px 22px -10px rgba(31,35,40,.35),0 0 0 1px rgba(31,35,40,.05);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;pointer-events:none}
 .lf-paper-bar.on{opacity:1;transform:none;pointer-events:auto}
-.lf-seg{display:inline-flex;padding:3px;border-radius:15px;background:rgba(31,35,40,.07)}
-.lf-root .lf-seg button{height:24px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:#5E645C;font:inherit;font-size:12px;cursor:pointer;transition:background .2s,color .2s}
-.lf-root .lf-seg button.on{background:#fff;color:#1F2328;font-weight:600;box-shadow:0 1px 3px rgba(31,35,40,.15)}
+.lf-seg{display:inline-flex;padding:3px;border-radius:15px;background:var(--fill)}
+.lf-root .lf-seg button{height:24px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:var(--ink2);font:inherit;font-size:12px;cursor:pointer;transition:background .2s,color .2s}
+.lf-root .lf-seg button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(31,35,40,.15)}
 .lf-where{position:relative}
-.lf-root .lf-where-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:0;border-radius:15px;background:transparent;color:#3A3F38;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
-.lf-root .lf-where-btn:hover{background:rgba(31,35,40,.06)}
-.lf-where-menu{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;flex-direction:column;min-width:200px;padding:6px;border-radius:14px;background:#fff;box-shadow:0 14px 34px -12px rgba(31,35,40,.4),0 0 0 1px rgba(31,35,40,.06);animation:lf-swap .2s cubic-bezier(.2,.9,.3,1.2) both;z-index:5}
-.lf-root .lf-where-menu button{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:#1F2328;font:inherit;font-size:13px;text-align:left;cursor:pointer;white-space:nowrap}
+.lf-root .lf-where-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:0;border-radius:15px;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
+.lf-root .lf-where-btn:hover{background:var(--fill)}
+.lf-where-menu{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;flex-direction:column;min-width:200px;padding:6px;border-radius:14px;background:var(--card);box-shadow:0 14px 34px -12px rgba(31,35,40,.4),0 0 0 1px rgba(31,35,40,.06);animation:lf-swap .2s cubic-bezier(.2,.9,.3,1.2) both;z-index:5}
+.lf-root .lf-where-menu button{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:inherit;font-size:13px;text-align:left;cursor:pointer;white-space:nowrap}
 .lf-root .lf-where-menu button:hover{background:#F4F5F1}
-.lf-root .lf-where-menu button::before{content:'';width:14px;height:14px;flex:none;border-radius:7px;box-shadow:inset 0 0 0 1.5px #C9CDC5}
+.lf-root .lf-where-menu button::before{content:'';width:14px;height:14px;flex:none;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--line)}
 .lf-root .lf-where-menu button.on::before{box-shadow:inset 0 0 0 4.5px #1E9E6A}
-.lf-root .lf-where-menu button.sub{height:28px;font-size:12px;color:#5E645C;padding-left:32px}
+.lf-root .lf-where-menu button.sub{height:28px;font-size:12px;color:var(--ink2);padding-left:32px}
 .lf-root .lf-where-menu button.sub::before{display:none}
-.lf-pull-hint{position:absolute;left:50%;translate:-50% 0;top:calc(100% - 4px);display:inline-flex;align-items:center;gap:5px;margin-top:62px;font-size:12px;font-weight:600;color:#5E645C;white-space:nowrap;pointer-events:none;opacity:0;animation:lf-fade .4s .3s forwards}
+.lf-pull-hint{position:absolute;left:50%;translate:-50% 0;top:calc(100% - 4px);display:inline-flex;align-items:center;gap:5px;margin-top:62px;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap;pointer-events:none;opacity:0;animation:lf-fade .4s .3s forwards}
 .lf-pull-hint svg{animation:lf-tug 1.4s ease-in-out infinite}
 @keyframes lf-tug{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
 .lf-root .lf-printbtn{width:28px;height:28px;margin:-4px -4px -4px 4px;border:0;border-radius:9px;background:rgba(255,255,255,.12);color:#fff;display:inline-grid;place-items:center;cursor:pointer;transition:background .2s,transform .2s}

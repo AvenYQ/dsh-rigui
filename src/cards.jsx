@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { GOALS, fmtTime, fmtHM, money, num, MEAL_NAME } from './data.js'
 
-const C = { sleep: '#3D4FB8', move: '#1E9E6A', food: '#F2994A', money: '#7C5CE0', body: '#0E8A8A', ink: '#1F2328' }
+const C = { sleep: '#3D4FB8', move: '#1E9E6A', food: '#F2994A', money: '#7C5CE0', body: '#0E8A8A', ink: 'var(--ink)' }
 const WEEK = '日一二三四五六'
 const md = (t) => { const d = new Date(t); return (d.getMonth() + 1) + '月' + d.getDate() + '日' }
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -146,7 +146,7 @@ export function MoveBars({ S }) {
             <span key={x.day + '-' + x.workoutMin + '-' + (hops[i] || 0)} data-ev={x.today ? 'move.today' : undefined}
               className={hops[i] ? 'lf-hop' : x.workoutMin ? 'lf-growy' : ''}
               style={{ width: '100%', maxWidth: 22, height: x.workoutMin ? Math.max(10, Math.min(100, x.workoutMin / 0.9)) + '%' : 6, maxHeight: 'calc(100% - 22px)', borderRadius: 6, background: x.workoutMin ? C.move : i === hi ? '#C9CEC6' : '#E2E5DF', transformOrigin: '50% 100%', transition: 'height .6s cubic-bezier(.2,.8,.2,1), background .2s' }} />
-            <span style={{ fontSize: 11.5, color: i === hi ? C.move : x.today ? C.ink : '#5E645C', fontWeight: x.today || i === hi ? 700 : 400, transition: 'color .2s' }}>{x.label}</span>
+            <span style={{ fontSize: 11.5, color: i === hi ? C.move : x.today ? C.ink : 'var(--ink2)', fontWeight: x.today || i === hi ? 700 : 400, transition: 'color .2s' }}>{x.label}</span>
           </div>
         ))}
       </div>
@@ -202,13 +202,13 @@ function BackHead({ title, tone }) {
   return (
     <div className="lf-row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
       <h2 className="lf-h">{title}</h2>
-      <span style={{ fontSize: 12, opacity: tone ? 0.75 : 1, color: tone ? undefined : '#8A8F86' }}>点一下翻回去</span>
+      <span style={{ fontSize: 12, opacity: tone ? 0.75 : 1, color: tone ? undefined : 'var(--ink3)' }}>点一下翻回去</span>
     </div>
   )
 }
 function Eq({ rows, tone }) {
   return (
-    <div className="lf-eq" style={{ '--line': tone ? 'rgba(255,255,255,.25)' : '#E4E6E0' }}>
+    <div className="lf-eq" style={{ '--line': tone ? 'rgba(255,255,255,.25)' : 'var(--fill2)' }}>
       {rows.map((r, i) => (
         <div key={i} className={'lf-eq-row' + (r.total ? ' total' : '')} style={{ animationDelay: 0.12 + i * 0.07 + 's' }}>
           <span className="lf-eq-op">{r.op || ''}</span>
@@ -310,24 +310,24 @@ export const CARDS_CSS = `
 .lf-root .lf-name:hover{background:rgba(255,255,255,.06)}
 .lf-name-add{color:rgba(244,245,241,.35);font-size:.6em;font-weight:500;letter-spacing:0;vertical-align:.25em}
 .lf-name-input{width:6em;border:0;border-bottom:2px solid rgba(244,245,241,.4);background:transparent;color:inherit;font:inherit;letter-spacing:inherit;outline:none;padding:0}
-.lf-todo-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -10px;padding:0 10px 4px;scrollbar-width:thin;scrollbar-color:#D5D8D1 transparent;-webkit-mask-image:linear-gradient(#000 calc(100% - 14px),transparent);mask-image:linear-gradient(#000 calc(100% - 14px),transparent)}
+.lf-todo-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -10px;padding:0 10px 4px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-mask-image:linear-gradient(#000 calc(100% - 14px),transparent);mask-image:linear-gradient(#000 calc(100% - 14px),transparent)}
 .lf-todo-list::-webkit-scrollbar{width:6px}
-.lf-todo-list::-webkit-scrollbar-thumb{background:#D5D8D1;border-radius:3px}
+.lf-todo-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
 .lf-archive{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -6px;padding:0 6px 8px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin}
-.lf-archive-day{font-size:11.5px;font-weight:600;color:#8A8F86;letter-spacing:.04em;margin:2px 0 4px}
-.lf-archive-item{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;margin:0 -8px;border-radius:10px;font-size:14px;color:#5E645C;animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both;transition:background .2s}
+.lf-archive-day{font-size:11.5px;font-weight:600;color:var(--ink3);letter-spacing:.04em;margin:2px 0 4px}
+.lf-archive-item{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;margin:0 -8px;border-radius:10px;font-size:14px;color:var(--ink2);animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both;transition:background .2s}
 .lf-archive-item:hover{background:#F4F5F1}
 .lf-archive-item.out{pointer-events:none;animation:lf-archout .55s cubic-bezier(.45,0,.55,1) forwards;will-change:transform,opacity}
 @keyframes lf-archout{0%{transform:none;opacity:1;max-height:40px;min-height:34px}45%{transform:translate(18px,-10px) rotate(2deg);opacity:.85;max-height:40px;min-height:34px}100%{transform:translate(70px,-30px) rotate(6deg) scale(.9);opacity:0;max-height:0;min-height:0}}
 .lf-todo.lf-arrive{animation:lf-arrive 1.1s var(--ad,.5s) cubic-bezier(.22,1,.36,1) both}
 @keyframes lf-arrive{0%{transform:translateY(-26px) rotate(-1.5deg);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
 @keyframes lf-arrivecheck_unused{0%{transform:scale(1)}40%{transform:scale(1.25);border-color:#1E9E6A;box-shadow:0 0 0 4px rgba(30,158,106,.18)}100%{transform:none}}
-.lf-archive-tick{width:16px;height:16px;border-radius:5px;background:#DDF2E8;color:#1E9E6A;display:grid;place-items:center;flex:none}
+.lf-archive-tick{width:16px;height:16px;border-radius:5px;background:color-mix(in srgb,#1E9E6A 14%,var(--card));color:#1E9E6A;display:grid;place-items:center;flex:none}
 .lf-archive-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lf-archive-amt{font-size:12.5px;color:#7C5CE0;font-variant-numeric:tabular-nums}
 .lf-root .lf-archive-back{height:26px;padding:0 10px;border:0;border-radius:13px;background:transparent;color:#1E9E6A;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;opacity:0;transition:opacity .2s,background .2s}
 .lf-archive-item:hover .lf-archive-back,.lf-archive-back:focus-visible{opacity:1}
-.lf-root .lf-archive-back:hover{background:#E5F4EC}
+.lf-root .lf-archive-back:hover{background:color-mix(in srgb,#1E9E6A 10%,var(--card))}
 .lf-root .lf-todo{padding-left:8px;padding-right:6px;margin:0 -8px;width:calc(100% + 14px)}
 .lf-nudges{display:flex;flex-direction:column;gap:12px;margin-top:auto}
 .lf-nudge-row{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
@@ -356,11 +356,11 @@ export const CARDS_CSS = `
 .lf-tip-pager i.on{width:12px;background:rgba(244,245,241,.8)}
 .lf-root .lf-alldone{flex:1;min-height:0;flex-direction:row;gap:14px;text-align:left;padding:14px 0 4px}
 .lf-root .lf-alldone .lf-ad-badge{width:46px;height:46px;flex:none}
-.lf-root .lf-sweep-btn,.lf-sweep-btn{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;border-radius:14px;background:#F1F2EE;color:#3A3F38;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .25s,color .25s,padding .3s cubic-bezier(.2,.9,.3,1.2),transform .2s,box-shadow .3s;animation:lf-pillin .35s cubic-bezier(.2,.9,.3,1.3)}
-.lf-sweep-btn:hover{background:#E6E8E2}
+.lf-root .lf-sweep-btn,.lf-sweep-btn{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;border-radius:14px;background:var(--fill);color:#3A3F38;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .25s,color .25s,padding .3s cubic-bezier(.2,.9,.3,1.2),transform .2s,box-shadow .3s;animation:lf-pillin .35s cubic-bezier(.2,.9,.3,1.3)}
+.lf-sweep-btn:hover{background:var(--fill2)}
 .lf-sweep-btn:not(.pending):hover svg{animation:lf-broom .5s ease-in-out infinite alternate;transform-origin:70% 30%}
 .lf-sweep-btn:active{transform:scale(.95)}
-.lf-sweep-btn.pending{padding:0 4px 0 4px;background:#fff;color:#1E9E6A;box-shadow:0 0 0 1px #DDEFE6,0 6px 18px -6px rgba(30,158,106,.45)}
+.lf-sweep-btn.pending{padding:0 4px 0 4px;background:var(--card);color:#1E9E6A;box-shadow:0 0 0 1px color-mix(in srgb,#1E9E6A 18%,var(--card)),0 6px 18px -6px rgba(30,158,106,.45)}
 .lf-sweep-btn.pending:hover{background:#F6FBF8}
 @keyframes lf-pillin{from{transform:scale(.85);opacity:.4}to{transform:none;opacity:1}}
 .lf-sweep-glow{position:absolute;z-index:-1;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,rgba(30,158,106,.18),rgba(30,158,106,.06) 70%,transparent);transform-origin:0 50%;animation:lf-drain var(--dur,5s) linear forwards}
@@ -371,7 +371,7 @@ export const CARDS_CSS = `
 .lf-roll{display:block;animation:lf-roll .35s cubic-bezier(.2,.9,.3,1.25)}
 @keyframes lf-roll{from{transform:translateY(110%);opacity:0;filter:blur(1.5px)}to{transform:none;opacity:1;filter:none}}
 .lf-sweep-label{white-space:nowrap}
-.lf-sweep-undo{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:10px;background:#E5F4EC;color:#1E9E6A;transition:transform .3s,background .2s}
+.lf-sweep-undo{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:10px;background:color-mix(in srgb,#1E9E6A 10%,var(--card));color:#1E9E6A;transition:transform .3s,background .2s}
 .lf-sweep-btn.pending:hover .lf-sweep-undo{transform:rotate(-200deg);background:#1E9E6A;color:#fff}
 .lf-todo{width:100%;padding:10px 0;min-height:44px;gap:10px;position:relative}
 .lf-todo-hit{display:flex;align-items:center;gap:10px;flex:1;min-width:0;border:0;background:transparent;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;min-height:24px}
@@ -380,9 +380,9 @@ export const CARDS_CSS = `
 .lf-todo:hover .lf-todo-acts,.lf-todo:has(:focus-visible) .lf-todo-acts{opacity:1}
 .lf-todo.done .lf-todo-acts{opacity:.22}
 .lf-todo.done:hover .lf-todo-acts{opacity:1}
-.lf-todo-act{width:28px;height:28px;border:0;border-radius:9px;background:transparent;color:#8A8F86;display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,transform .15s}
-.lf-todo-act:hover{background:#F1F2EE;color:#1F2328}
-.lf-todo-act.del:hover{background:#FDECEC;color:#D9363E}
+.lf-todo-act{width:28px;height:28px;border:0;border-radius:9px;background:transparent;color:var(--ink3);display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,transform .15s}
+.lf-todo-act:hover{background:var(--fill);color:var(--ink)}
+.lf-todo-act.del:hover{background:color-mix(in srgb,#E5484D 13%,var(--card));color:#D9363E}
 .lf-todo-act.del:hover svg{animation:lf-binshake .4s ease-in-out}
 @keyframes lf-binshake{25%{transform:rotate(-12deg)}75%{transform:rotate(10deg)}}
 .lf-todo-act:active{transform:scale(.88)}
@@ -398,14 +398,14 @@ export const CARDS_CSS = `
 .lf-todo.back .lf-check,.lf-todo.back .lf-todo-amt{animation:lf-dustbox .4s cubic-bezier(.2,.9,.3,1.4) reverse both}
 .lf-root .lf-todo-undo .lf-sweep-btn.pending{padding:0 3px;height:24px;font-size:12px;gap:5px}
 .lf-todo-undo .lf-sweep-num,.lf-todo-undo .lf-sweep-undo{width:17px;height:17px;font-size:10.5px}
-.lf-todo-undo{justify-content:space-between;background:linear-gradient(90deg,#FBFCFA,transparent);border-radius:12px;animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both}
+.lf-todo-undo{justify-content:space-between;background:linear-gradient(90deg,var(--card),transparent);border-radius:12px;animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both}
 .lf-todo-undo.gone{overflow:hidden;animation:lf-undogone .36s cubic-bezier(.5,0,.75,0) forwards}
 @keyframes lf-undogone{to{max-height:0;min-height:0;padding-top:0;padding-bottom:0;opacity:0;border-top-width:0;transform:scale(.96)}}
-.lf-todo-ghost{font-size:13.5px;color:#8A8F86;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lf-todo-ghost{font-size:13.5px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .lf-todo-ghost s{color:#B5B9B1;text-decoration-color:rgba(217,54,62,.55)}
 .lf-todo-input:focus,.lf-todo-input:focus-visible{outline:none!important}
-.lf-todo-input{flex:1;min-width:0;height:32px;margin:-4px 0;padding:0 10px;border:1.5px solid #1E9E6A;border-radius:9px;background:#fff;font:inherit;font-size:15px;color:#1F2328;outline:none;box-shadow:0 0 0 4px rgba(30,158,106,.12);animation:lf-swap .2s ease both}
-.lf-todo-hint{font-size:11.5px;color:#8A8F86;white-space:nowrap}
+.lf-todo-input{flex:1;min-width:0;height:32px;margin:-4px 0;padding:0 10px;border:1.5px solid #1E9E6A;border-radius:9px;background:var(--card);font:inherit;font-size:15px;color:var(--ink);outline:none;box-shadow:0 0 0 4px rgba(30,158,106,.12);animation:lf-swap .2s ease both}
+.lf-todo-hint{font-size:11.5px;color:var(--ink3);white-space:nowrap}
 .lf-todo.saved .lf-strike{animation:lf-saved 1s ease both}
 @keyframes lf-saved{0%{background-color:rgba(30,158,106,.22)}100%{background-color:transparent}}
 .lf-todo.lf-pend{opacity:.38;transform:translateX(8px);transition:opacity .35s,transform .45s cubic-bezier(.2,.9,.3,1.2)}
@@ -436,7 +436,7 @@ export const CARDS_CSS = `
 .lf-hop{animation:lf-hop .55s cubic-bezier(.3,1.6,.5,1)}
 @keyframes lf-hop{0%{transform:scaleY(1)}30%{transform:scaleY(1.22) translateY(-3px)}55%{transform:scaleY(.9)}75%{transform:scaleY(1.05)}100%{transform:none}}
 .lf-taste{position:absolute;top:7px;height:12px;border-radius:0 6px 6px 0;background:repeating-linear-gradient(135deg,rgba(242,153,74,.55) 0 4px,rgba(242,153,74,.25) 4px 8px);pointer-events:none;transition:width .12s}
-.lf-taste-tip{position:absolute;top:-16px;transition:left .1s;font-variant-numeric:tabular-nums;transform:translateX(-50%);font-size:11.5px;font-weight:700;color:#C26A1E;white-space:nowrap;pointer-events:none}
+.lf-taste-tip{position:absolute;top:-16px;transition:left .1s;font-variant-numeric:tabular-nums;transform:translateX(-50%);font-size:11.5px;font-weight:700;color:var(--food-ink);white-space:nowrap;pointer-events:none}
 .lf-taste-pin{position:absolute;top:3px;bottom:3px;width:2px;margin-left:-1px;border-radius:1px;background:#F2994A;pointer-events:none}
 .lf-wline{position:absolute;top:0;bottom:0;width:1px;transition:left .12s;background:rgba(14,138,138,.35);pointer-events:none}
 .lf-wdot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;border:2.5px solid #0E8A8A;pointer-events:none;transition:left .12s,top .12s}

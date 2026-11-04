@@ -174,11 +174,11 @@ export function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdop
         <header className="gl-head">
           <div>
             <h2 style={{ margin: 0, fontSize: 26, fontWeight: 650, letterSpacing: '-0.02em' }}>把日子当成一局游戏</h2>
-            <p style={{ margin: '6px 0 0', fontSize: 14, color: '#5E645C', lineHeight: 1.6, maxWidth: 620 }}>
+            <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink2)', lineHeight: 1.6, maxWidth: 620 }}>
               六层目标，从靶心的每天一圈圈往外。下面的建议是按你记下的数据算的，觉得合适就采纳，数字可以先调。结构参考 Dan Koe《How to fix your entire life in 1 day》。
             </p>
           </div>
-          <button className="lf-icon" onClick={onClose} aria-label="关闭目标" style={{ width: 40, height: 40, borderRadius: 20, background: '#F1F2EE', color: '#1F2328', flex: 'none' }}>
+          <button className="lf-icon" onClick={onClose} aria-label="关闭目标" style={{ width: 40, height: 40, borderRadius: 20, background: 'var(--fill)', color: 'var(--ink)', flex: 'none' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
         </header>
@@ -193,10 +193,10 @@ export function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdop
                   return (
                     <g key={L.key} className={'gl-ring' + (on ? ' on' : '') + (hot === L.key ? ' hot' : '')} style={{ '--c': L.color, animationDelay: (LAYERS.length - 1 - i) * 0.09 + 's' }}>
                       {L.key === 'daily' ? (
-                        <circle cx="180" cy="180" r={L.r - 4} className="gl-core" fill={on ? L.color : '#F1F2EE'} />
+                        <circle cx="180" cy="180" r={L.r - 4} className="gl-core" style={{ fill: on ? L.color : 'var(--fill)' }} />
                       ) : null}
                       <circle cx="180" cy="180" r={L.r} fill="none" pathLength="1"
-                        stroke={on ? L.color : '#DADDD6'} strokeWidth={isRule ? 2.5 : 14} strokeDasharray={isRule ? '0.012 0.012' : undefined}
+                        style={{ stroke: on ? L.color : 'var(--line)' }} strokeWidth={isRule ? 2.5 : 14} strokeDasharray={isRule ? '0.012 0.012' : undefined}
                         strokeOpacity={on ? (L.key === 'anti' ? 0.85 : 1) : 1} className={'gl-band' + (isRule ? ' dash' : '')} />
                       {lit[L.key] && <circle key={lit[L.key]} cx="180" cy="180" r={L.r} fill="none" stroke={L.color} strokeWidth="14" className="gl-flash" />}
                     </g>
@@ -219,8 +219,8 @@ export function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdop
                   )
                 }))}
                 <g className="gl-core-text">
-                  <text x="180" y={locked ? 186 : 182} textAnchor="middle" fontSize="15" fontWeight="700" fill={layerDone('daily') ? '#fff' : '#8A8F86'}>{locked ? '开始' : doneCount + '/6'}</text>
-                  {!locked && <text x="180" y="198" textAnchor="middle" fontSize="9.5" fontWeight="600" fill={layerDone('daily') ? 'rgba(255,255,255,.85)' : '#A3A89F'}>层点亮</text>}
+                  <text x="180" y={locked ? 186 : 182} textAnchor="middle" fontSize="15" fontWeight="700" style={{ fill: layerDone('daily') ? '#fff' : 'var(--ink3)' }}>{locked ? '开始' : doneCount + '/6'}</text>
+                  {!locked && <text x="180" y="198" textAnchor="middle" fontSize="9.5" fontWeight="600" style={{ fill: layerDone('daily') ? 'rgba(255,255,255,.85)' : 'var(--ink3)' }}>层点亮</text>}
                 </g>
                 {plus.map((p) => {
                   return <text key={p.id} x={p.tip.x + 20} y={p.tip.y - 34} textAnchor="middle" fontSize="15" fontWeight="800" fill={p.color} className="gl-plus">{p.text}</text>
@@ -231,7 +231,7 @@ export function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdop
             <ul className="gl-legend">
               {LAYERS.map((L) => (
                 <li key={L.key} onMouseEnter={() => setHot(L.key)} onMouseLeave={() => setHot(null)} className={layerDone(L.key) ? 'on' : ''}>
-                  <span className="gl-dot" style={{ background: layerDone(L.key) ? L.color : '#DADDD6' }} />
+                  <span className="gl-dot" style={{ background: layerDone(L.key) ? L.color : 'var(--line)' }} />
                   <b>{L.game}</b><span>{L.name}</span>
                   {layerDone(L.key) && <em className="gl-count" style={{ background: L.color }}>{picks(L.key).length}</em>}
                 </li>
@@ -323,15 +323,15 @@ export const GOALS_CSS = `
 @keyframes gl-spin{to{transform:rotate(360deg)}}
 .gl-overlay{position:fixed;top:0;bottom:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .gl-backdrop{position:absolute;inset:0;background:rgba(31,35,40,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:gl-fade .35s ease both}
-.gl-sheet{position:relative;width:min(1240px,calc(100% - 32px));height:calc(100% - 40px);background:#F7F8F5;border-radius:32px 32px 0 0;box-shadow:0 -20px 60px rgba(31,35,40,.25);display:flex;flex-direction:column;overflow:hidden;animation:gl-up .55s cubic-bezier(.2,.9,.25,1.05) both}
+.gl-sheet{position:relative;width:min(1240px,calc(100% - 32px));height:calc(100% - 40px);background:var(--sheet);border-radius:32px 32px 0 0;box-shadow:0 -20px 60px rgba(31,35,40,.25);display:flex;flex-direction:column;overflow:hidden;animation:gl-up .55s cubic-bezier(.2,.9,.25,1.05) both}
 .gl-overlay.out .gl-sheet{animation:gl-down .38s cubic-bezier(.4,0,.6,1) both}
 .gl-overlay.out .gl-backdrop{animation:gl-fade .38s ease reverse both}
 @keyframes gl-up{from{transform:translateY(100%)}to{transform:none}}
 @keyframes gl-down{to{transform:translateY(100%)}}
 @keyframes gl-fade{from{opacity:0}to{opacity:1}}
-.gl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:28px 32px 18px;color:#1F2328}
+.gl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:28px 32px 18px;color:var(--ink)}
 .gl-body{flex:1;min-height:0;display:flex;gap:28px;padding:0 32px 32px;overflow:hidden}
-.gl-target-col{flex:0 0 340px;display:flex;flex-direction:column;gap:14px;color:#1F2328}
+.gl-target-col{flex:0 0 340px;display:flex;flex-direction:column;gap:14px;color:var(--ink)}
 .gl-target{width:100%;transition:transform 1s cubic-bezier(.3,1.4,.5,1)}
 .gl-target svg{overflow:visible}
 .gl-target.locked{transform:rotate(360deg)}
@@ -371,46 +371,46 @@ export const GOALS_CSS = `
 .gl-target:not(.locked) .gl-pip:hover{transform:scale(1.3)}
 .gl-count{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;color:#fff;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-grid;place-items:center;box-sizing:border-box}
 .gl-legend li{white-space:nowrap}
-.gl-tally{margin:4px 0 12px;font-size:13.5px;color:#3A3F38;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
-.gl-tally b{font-weight:650}.gl-tally i{font-style:normal;color:#A3A89F}
-.gl-tally span{flex-basis:100%;font-size:12px;color:#8A8F86;line-height:1.5}
+.gl-tally{margin:4px 0 12px;font-size:13.5px;color:var(--ink);display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
+.gl-tally b{font-weight:650}.gl-tally i{font-style:normal;color:var(--ink3)}
+.gl-tally span{flex-basis:100%;font-size:12px;color:var(--ink3);line-height:1.5}
 .gl-legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
 .gl-legend li{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 10px;border-radius:10px;transition:background .2s}
-.gl-legend li:hover{background:#ECEEE9}
-.gl-legend b{font-weight:600}.gl-legend span:not(.gl-dot){color:#6F756D}
+.gl-legend li:hover{background:var(--rule)}
+.gl-legend b{font-weight:600}.gl-legend span:not(.gl-dot){color:var(--ink2)}
 .gl-dot{width:9px;height:9px;border-radius:5px;flex:none;transition:background .4s}
 .gl-locked-msg{margin:4px 0 0;font-size:14px;line-height:1.6;color:#1E6E4C;animation:lf-rise .5s .3s both}
-.gl-deck{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 6px 40px 2px;display:flex;flex-direction:column;gap:26px;color:#1F2328}
+.gl-deck{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 6px 40px 2px;display:flex;flex-direction:column;gap:26px;color:var(--ink)}
 .gl-group-title{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:15px;font-weight:600}
 .gl-tag{color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px}
 .gl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.gl-card{position:relative;background:#fff;border-radius:22px;padding:18px 18px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-shadow:0 1px 0 rgba(31,35,40,.04);transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,opacity .3s;animation:lf-rise .5s cubic-bezier(.2,.8,.2,1) both;perspective:800px}
+.gl-card{position:relative;background:var(--card);border-radius:22px;padding:18px 18px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-shadow:0 1px 0 rgba(31,35,40,.04);transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,opacity .3s;animation:lf-rise .5s cubic-bezier(.2,.8,.2,1) both;perspective:800px}
 .gl-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px -12px rgba(31,35,40,.25)}
 .gl-card::before{content:'';position:absolute;left:0;top:18px;bottom:18px;width:0;border-radius:0 3px 3px 0;background:var(--c);transition:width .3s}
-.gl-card.done{background:color-mix(in srgb,var(--c) 7%,#fff)}
+.gl-card.done{background:color-mix(in srgb,var(--c) 7%,var(--card))}
 .gl-card.done::before{width:4px}
 .gl-card.gl-sent{transform:scale(.96);opacity:.7}
 .gl-flip{animation:gl-flip .46s cubic-bezier(.4,0,.2,1)}
 @keyframes gl-flip{0%{transform:rotateY(0)}49%{transform:rotateY(90deg);opacity:.2}51%{transform:rotateY(-90deg);opacity:.2}100%{transform:rotateY(0)}}
-.gl-card-title{font-size:13px;color:#6F756D;margin-bottom:6px}
+.gl-card-title{font-size:13px;color:var(--ink2);margin-bottom:6px}
 .gl-num-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gl-num{font-size:30px;font-weight:600;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;animation:gl-tick .25s cubic-bezier(.2,.9,.3,1.4)}
-.gl-num small{font-size:13px;font-weight:400;color:#6F756D;letter-spacing:0}
+.gl-num small{font-size:13px;font-weight:400;color:var(--ink2);letter-spacing:0}
 @keyframes gl-tick{from{transform:translateY(-6px);opacity:.4}to{transform:none;opacity:1}}
-.gl-step{width:30px;height:30px;border-radius:15px;border:0;background:#F1F2EE;color:#1F2328;font-size:17px;line-height:1;cursor:pointer;transition:background .2s,transform .15s}
-.gl-step:hover:not(:disabled){background:color-mix(in srgb,var(--c) 18%,#fff)}
+.gl-step{width:30px;height:30px;border-radius:15px;border:0;background:var(--fill);color:var(--ink);font-size:17px;line-height:1;cursor:pointer;transition:background .2s,transform .15s}
+.gl-step:hover:not(:disabled){background:color-mix(in srgb,var(--c) 18%,var(--card))}
 .gl-step:active:not(:disabled){transform:scale(.88)}
 .gl-step:disabled{opacity:.35;cursor:default}
-.gl-after{font-size:12.5px;padding:3px 9px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,#fff);color:color-mix(in srgb,var(--c) 60%,#1F2328)}
+.gl-after{font-size:12.5px;padding:3px 9px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,var(--card));color:color-mix(in srgb,var(--c) 60%,var(--ink))}
 .gl-text{margin:0;font-size:16px;line-height:1.55;font-weight:500}
-.gl-why{margin:8px 0 0;font-size:13px;line-height:1.6;color:#5E645C}
+.gl-why{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--ink2)}
 .gl-actions{display:flex;align-items:center;gap:10px}
 .lf-root .gl-adopt,.gl-adopt{height:34px;padding:0 16px;border-radius:17px;border:0;background:var(--c);color:#fff;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;transition:transform .15s,filter .2s}
 .gl-adopt:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .gl-adopt:active{transform:scale(.94)}
-.gl-link{border:0;background:transparent;color:#5E645C;font:inherit;font-size:13px;cursor:pointer;padding:6px 4px}
-.gl-link:hover{color:#1F2328;text-decoration:underline}
-.gl-adopted{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--c) 70%,#1F2328)}
+.gl-link{border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;cursor:pointer;padding:6px 4px}
+.gl-link:hover{color:var(--ink);text-decoration:underline}
+.gl-adopted{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--c) 70%,var(--ink))}
 .lf-vision{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:rgba(244,245,241,.85);animation:lf-rise .6s both}
 .lf-vision i{width:6px;height:6px;border-radius:3px;background:#B9A6F5;box-shadow:0 0 0 4px rgba(124,92,224,.25)}
 @media (max-width:900px){.gl-body{flex-direction:column;overflow-y:auto}.gl-target-col{flex:none;max-width:360px;align-self:center}.gl-deck{overflow:visible}}

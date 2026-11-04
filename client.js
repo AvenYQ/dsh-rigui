@@ -832,12 +832,12 @@ var NOT_FOOD = /(打车|地铁|公交|高铁|机票|滴滴|加油|停车|房租|
 
 // src/data.js
 var DOMAIN = {
-  sleep: { name: "睡眠", color: "#3D4FB8", soft: "#E3E6F8" },
-  move: { name: "运动", color: "#1E9E6A", soft: "#DDF2E8" },
-  food: { name: "饮食", color: "#F2994A", soft: "#FDEBDA" },
-  money: { name: "花销", color: "#7C5CE0", soft: "#ECE6FB" },
-  time: { name: "日程", color: "#1F2328", soft: "#E9EAE6" },
-  body: { name: "身体", color: "#0E8A8A", soft: "#D9F0EF" }
+  sleep: { name: "睡眠", color: "#3D4FB8", soft: "color-mix(in srgb,#3D4FB8 15%,var(--card))" },
+  move: { name: "运动", color: "#1E9E6A", soft: "color-mix(in srgb,#1E9E6A 15%,var(--card))" },
+  food: { name: "饮食", color: "#F2994A", soft: "color-mix(in srgb,#F2994A 15%,var(--card))" },
+  money: { name: "花销", color: "#7C5CE0", soft: "color-mix(in srgb,#7C5CE0 15%,var(--card))" },
+  time: { name: "日程", color: "#1F2328", soft: "var(--fill)" },
+  body: { name: "身体", color: "#0E8A8A", soft: "color-mix(in srgb,#0E8A8A 15%,var(--card))" }
 };
 var DEFAULT_GOALS = { kcal: 1800, budget: 7e3, sleep: 7.5, workoutsPerWeek: 4, weight: null };
 var GOALS = { ...DEFAULT_GOALS };
@@ -1668,11 +1668,16 @@ function ghostSlots(records, now = Date.now()) {
 // src/styles.js
 var FONT_HREF = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&display=swap";
 var CSS = `
-.lf-root{--ink:#1F2328;--ink2:#5E645C;--ink3:#8A8F86;--ground:#E8EAE5;--card:#FFFFFF;--rule:#ECEEE9;
+.lf-root{--ink:#1F2328;--ink2:#5E645C;--ink3:#8A8F86;--ground:#E8EAE5;--card:#FFFFFF;--rule:#ECEEE9;--fill:#F1F2EE;--fill2:#E6E8E2;--line:#D5D8D1;--sheet:#F7F8F5;--move-ink:#157A51;--warn-ink:#9B1C20;--money-ink:#4B2FB0;--food-ink:#C26A1E;
   --sleep:#3D4FB8;--move:#1E9E6A;--food:#F2994A;--money:#7C5CE0;--body:#0E8A8A;--alert:#E5484D;
   position:relative;min-height:100%;box-sizing:border-box;background:var(--ground);color:var(--ink);
   font-family:'Bricolage Grotesque','PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;container-type:inline-size;container-name:lf;overflow:clip}
+/* 夜间：跟随 DSH 的深色主题（body[data-ds-dark-theme]） */
+body[data-ds-dark-theme] .lf-root{--ink:#E8E9E5;--ink2:#A7ACA4;--ink3:#7D827B;--ground:#111214;--card:#1B1D20;--rule:#2A2D31;--fill:#25282C;--fill2:#2E3136;--line:#3A3E44;--sheet:#16181A;
+  --move-ink:#5FD39C;--warn-ink:#FF8A8E;--money-ink:#BBA8F7;--food-ink:#F6B373;color-scheme:dark}
+body[data-ds-dark-theme] .lf-root .lf-card{box-shadow:inset 0 0 0 1px rgba(255,255,255,.04),var(--lift,0 0 #0000)}
+body[data-ds-dark-theme] .lf-host{background:#111214!important}
 .lf-root.lf-scrolling .lf-wrap{pointer-events:none}
 .lf-root *,.lf-root *::before,.lf-root *::after{box-sizing:border-box}
 .lf-root button{font:inherit;color:inherit;cursor:pointer}
@@ -1696,10 +1701,10 @@ var CSS = `
 .lf-row{display:flex;align-items:center;gap:10px}
 .lf-chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;font-size:12.5px;white-space:nowrap}
 .lf-dot{width:8px;height:8px;border-radius:4px;flex:none}
-.lf-btn{height:36px;padding:0 14px;border-radius:18px;border:0;background:#F1F2EE;font-size:13px}
-.lf-btn:hover{background:#E4E6E0}
+.lf-btn{height:36px;padding:0 14px;border-radius:18px;border:0;background:var(--fill);font-size:13px}
+.lf-btn:hover{background:var(--fill2)}
 .lf-icon{width:32px;height:32px;border-radius:16px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink3)}
-.lf-icon:hover{background:#F1F2EE;color:var(--ink)}
+.lf-icon:hover{background:var(--fill);color:var(--ink)}
 .s12{grid-column:span 12}.s8{grid-column:span 8}.s7{grid-column:span 7}.s5{grid-column:span 5}.s4{grid-column:span 4}.s3{grid-column:span 3}.r2{grid-row:span 2}
 @container lf (max-width:1080px){.s8,.s7,.s5,.s4{grid-column:span 6}.s3{grid-column:span 6}.r2{grid-row:span 1}}
 @container lf (max-width:680px){.s12,.s8,.s7,.s5,.s4,.s3{grid-column:1/-1}.lf-hero{grid-template-columns:1fr!important}}
@@ -1714,8 +1719,8 @@ var CSS = `
 .lf-send:not(:disabled):hover{transform:scale(1.06)}
 .lf-token{border-radius:8px;padding:1px 6px;margin:0 1px;font-weight:600;animation:lf-pop .25s cubic-bezier(.2,.9,.3,1.3)}
 .lf-tl-item{animation:lf-in .5s cubic-bezier(.2,.8,.2,1) both}
-.lf-check{width:22px;height:22px;border-radius:7px;border:1.5px solid #C9CDC5;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none;transition:all .2s}
-.lf-check.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.lf-check{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;flex:none;transition:all .2s}
+.lf-check.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .lf-arc{transition:opacity .25s,stroke-width .25s}
 .lf-arc:hover{stroke-width:24}
 .lf-enter{animation:lf-rise .7s cubic-bezier(.2,.8,.2,1) both}
@@ -1742,17 +1747,17 @@ var CSS = `
 .lf-root.lf-scrolling .lf-grip,.lf-root.lf-scrolling .lf-resize{opacity:0}
 .lf-confirm{animation:lf-pop .2s cubic-bezier(.2,.9,.3,1.3)}
 .lf-ghost{display:flex;gap:14px;width:100%;border:0;background:transparent;padding:5px 0;text-align:left;align-items:stretch;color:inherit}
-.lf-ghost-time{width:44px;flex:none;font-size:13px;color:#8A8F86;padding-top:13px}
-.lf-ghost-box{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;align-items:center;padding:9px 10px 9px 14px;border-radius:14px;border:1.5px dashed #D5D8D1;transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s}
-.lf-ghost-title{font-size:15px;font-weight:500;color:#4A5048}
-.lf-ghost-hint{grid-column:1;font-size:13px;color:#6F756D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lf-ghost-cta{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#6F756D}
-.lf-ghost-plus{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#F1F2EE;color:#4A5048;font-size:18px;line-height:1;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,color .25s}
-.lf-ghost.due .lf-ghost-box{background:color-mix(in srgb,var(--g) 6%,#fff);animation:lf-ghost-breathe 2.8s ease-in-out infinite}
-.lf-ghost.due .lf-ghost-cta{color:color-mix(in srgb,var(--g) 55%,#1F2328);font-weight:600}
+.lf-ghost-time{width:44px;flex:none;font-size:13px;color:var(--ink3);padding-top:13px}
+.lf-ghost-box{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;align-items:center;padding:9px 10px 9px 14px;border-radius:14px;border:1.5px dashed var(--line);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s}
+.lf-ghost-title{font-size:15px;font-weight:500;color:var(--ink2)}
+.lf-ghost-hint{grid-column:1;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lf-ghost-cta{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2)}
+.lf-ghost-plus{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--fill);color:var(--ink2);font-size:18px;line-height:1;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,color .25s}
+.lf-ghost.due .lf-ghost-box{background:color-mix(in srgb,var(--g) 6%,var(--card));animation:lf-ghost-breathe 2.8s ease-in-out infinite}
+.lf-ghost.due .lf-ghost-cta{color:color-mix(in srgb,var(--g) 55%,var(--ink));font-weight:600}
 .lf-ghost.future{opacity:.6}
 .lf-ghost:hover,.lf-ghost:focus-visible{opacity:1}
-.lf-ghost:hover .lf-ghost-box,.lf-ghost:focus-visible .lf-ghost-box{border-style:solid;border-color:var(--g);background:color-mix(in srgb,var(--g) 10%,#fff);transform:translateX(4px);animation:none}
+.lf-ghost:hover .lf-ghost-box,.lf-ghost:focus-visible .lf-ghost-box{border-style:solid;border-color:var(--g);background:color-mix(in srgb,var(--g) 10%,var(--card));transform:translateX(4px);animation:none}
 .lf-ghost:hover .lf-ghost-plus,.lf-ghost:focus-visible .lf-ghost-plus{background:var(--g);color:#fff;transform:rotate(90deg) scale(1.08)}
 .lf-ghost:active .lf-ghost-box{transform:translateX(4px) scale(.98)}
 @keyframes lf-ghost-breathe{0%,100%{border-color:color-mix(in srgb,var(--g) 22%,transparent)}50%{border-color:color-mix(in srgb,var(--g) 65%,transparent)}}
@@ -1785,7 +1790,7 @@ var CSS = `
 @keyframes lf-ring{from{transform:scale(.2);opacity:1}to{transform:scale(9);opacity:0}}
 .lf-todo{border-radius:12px}
 .lf-cascade{animation:lf-cascade .55s cubic-bezier(.2,.8,.2,1) both}
-@keyframes lf-cascade{0%{background:transparent;transform:none}40%{background:#DDF2E8;transform:translateX(6px)}100%{background:transparent;transform:none}}
+@keyframes lf-cascade{0%{background:transparent;transform:none}40%{background:color-mix(in srgb,#1E9E6A 14%,var(--card));transform:translateX(6px)}100%{background:transparent;transform:none}}
 .lf-alldone{flex:1;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding-top:8px}
 .lf-alldone.play .lf-ad-badge{animation:lf-badge .6s var(--delay) cubic-bezier(.2,.9,.3,1.45) both}
 .lf-alldone.play .lf-ad-check{stroke-dasharray:1;stroke-dashoffset:1;animation:lf-draw .4s calc(var(--delay) + .35s) ease-out forwards}
@@ -1804,7 +1809,7 @@ var CSS = `
 @keyframes lf-evpop{0%{outline-offset:12px;box-shadow:0 0 0 0 transparent}100%{outline-offset:4px}}
 .lf-think{display:inline-flex;gap:3px}.lf-think i{width:5px;height:5px;border-radius:3px;background:#F2994A;animation:lf-bounce 1s infinite ease-in-out}
 .lf-think i:nth-child(2){animation-delay:.15s;background:#7C5CE0}.lf-think i:nth-child(3){animation-delay:.3s;background:#1E9E6A}
-.lf-spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(31,35,40,.25);border-top-color:#1F2328;animation:lf-rot .7s linear infinite}
+.lf-spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(31,35,40,.25);border-top-color:var(--ink);animation:lf-rot .7s linear infinite}
 .lf-root input[type=number]::-webkit-inner-spin-button{opacity:.4}
 @keyframes lf-bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}
 @keyframes lf-rot{to{transform:rotate(360deg)}}
@@ -1813,7 +1818,7 @@ var CSS = `
 @keyframes lf-march{to{stroke-dashoffset:-.024}}
 @keyframes lf-flash{0%{box-shadow:0 0 0 0 var(--c)}25%{box-shadow:0 0 0 2px var(--ground),0 0 0 5px var(--c);transform:translateY(-3px)}100%{box-shadow:0 0 0 0 transparent;transform:none}}
 @keyframes lf-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes lf-in{from{opacity:0;transform:translateX(-10px);background:#FFF6EC}to{opacity:1;transform:none}}
+@keyframes lf-in{from{opacity:0;transform:translateX(-10px);background:color-mix(in srgb,#F2994A 10%,var(--card))}to{opacity:1;transform:none}}
 @keyframes lf-pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
 @keyframes lf-breathe{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.lf-root *{animation:none!important;transition:none!important}.lf-dialdraw,.lf-thread{stroke-dashoffset:0}}
@@ -2082,18 +2087,19 @@ function LiquidBar({ eaten, goal, burned, cap, meals, preview, pour }) {
       ctx.save();
       tube(w);
       ctx.clip();
-      ctx.fillStyle = "#F1F2EE";
+      const dk = document.body.hasAttribute("data-ds-dark-theme");
+      ctx.fillStyle = dk ? "#25282C" : "#F1F2EE";
       ctx.fillRect(0, 0, w, H);
-      ctx.fillStyle = "#E6E8E2";
+      ctx.fillStyle = dk ? "#2E3136" : "#E6E8E2";
       ctx.fillRect(0, 0, xg, H);
       if (L.burned > 0) {
         ctx.save();
         ctx.beginPath();
         ctx.rect(xg, 0, xb - xg, H);
         ctx.clip();
-        ctx.fillStyle = "#DDF2E8";
+        ctx.fillStyle = dk ? "#1C3A2E" : "#DDF2E8";
         ctx.fillRect(xg, 0, xb - xg, H);
-        ctx.strokeStyle = "#BFE6D3";
+        ctx.strokeStyle = dk ? "#24503D" : "#BFE6D3";
         ctx.lineWidth = 3;
         for (let x = xg - H; x < xb + H; x += 8) {
           ctx.beginPath();
@@ -2166,7 +2172,7 @@ function LiquidBar({ eaten, goal, burned, cap, meals, preview, pour }) {
       ctx.roundRect ? ctx.roundRect(6, PAD_T + 2.5, w - 12, 2.5, 1.25) : ctx.rect(6, PAD_T + 2.5, w - 12, 2.5);
       ctx.fill();
       ctx.restore();
-      ctx.fillStyle = "#1F2328";
+      ctx.fillStyle = dk ? "#E8E9E5" : "#1F2328";
       ctx.fillRect(Math.round(xb) - 1, 1, 2, H - 2);
       const busy = !reduce && visible && (L.preview != null || B.length > 0 || Math.abs(s.ve) + Math.abs(s.vp) > 0.02 || Math.abs(xe - s.fe) > 0.3 || true);
       if (busy) raf2 = requestAnimationFrame(frame);
@@ -2231,22 +2237,23 @@ function WeightFog({ label = "擦一擦玻璃，看看体重" }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalCompositeOperation = "source-over";
       const g = ctx.createLinearGradient(0, 0, w, h);
-      g.addColorStop(0, "rgb(234,239,237)");
-      g.addColorStop(1, "rgb(224,231,229)");
+      const dk = document.body.hasAttribute("data-ds-dark-theme");
+      g.addColorStop(0, dk ? "rgb(52,57,60)" : "rgb(234,239,237)");
+      g.addColorStop(1, dk ? "rgb(42,46,49)" : "rgb(224,231,229)");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
       let s = 11;
       const r = () => (s = (s * 9301 + 49297) % 233280) / 233280;
       for (let i = 0; i < w * h / 55; i++) {
-        ctx.fillStyle = `rgba(255,255,255,${0.25 + r() * 0.5})`;
+        ctx.fillStyle = `rgba(255,255,255,${(dk ? 0.06 : 0.25) + r() * (dk ? 0.12 : 0.5)})`;
         ctx.fillRect(r() * w, r() * h, 1.2, 1.2);
       }
       for (let i = 0; i < 26; i++) {
         const x = r() * w, y = r() * h, rr = 1.5 + r() * 3.5;
         const dg = ctx.createRadialGradient(x - rr * 0.3, y - rr * 0.3, 0, x, y, rr);
-        dg.addColorStop(0, "rgba(255,255,255,.95)");
-        dg.addColorStop(0.7, "rgba(210,220,218,.6)");
-        dg.addColorStop(1, "rgba(180,195,192,.25)");
+        dg.addColorStop(0, dk ? "rgba(255,255,255,.35)" : "rgba(255,255,255,.95)");
+        dg.addColorStop(0.7, dk ? "rgba(120,130,130,.35)" : "rgba(210,220,218,.6)");
+        dg.addColorStop(1, dk ? "rgba(90,100,100,.15)" : "rgba(180,195,192,.25)");
         ctx.fillStyle = dg;
         ctx.beginPath();
         ctx.arc(x, y, rr, 0, Math.PI * 2);
@@ -2907,20 +2914,20 @@ var RECEIPT_CSS = `
 .lf-print-toast{position:absolute;left:50%;translate:-50% 0;z-index:3;padding:7px 14px;border-radius:16px;background:#1F2328;color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap;box-shadow:0 10px 24px -10px rgba(0,0,0,.5);animation:lf-swap .3s cubic-bezier(.2,.9,.3,1.3) both}
 .lf-paper-bar{display:flex;align-items:center;gap:6px;width:max-content;position:relative;left:50%;translate:-50% 0;margin:12px 0 0;padding:5px;border-radius:20px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);box-shadow:0 8px 22px -10px rgba(31,35,40,.35),0 0 0 1px rgba(31,35,40,.05);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;pointer-events:none}
 .lf-paper-bar.on{opacity:1;transform:none;pointer-events:auto}
-.lf-seg{display:inline-flex;padding:3px;border-radius:15px;background:rgba(31,35,40,.07)}
-.lf-root .lf-seg button{height:24px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:#5E645C;font:inherit;font-size:12px;cursor:pointer;transition:background .2s,color .2s}
-.lf-root .lf-seg button.on{background:#fff;color:#1F2328;font-weight:600;box-shadow:0 1px 3px rgba(31,35,40,.15)}
+.lf-seg{display:inline-flex;padding:3px;border-radius:15px;background:var(--fill)}
+.lf-root .lf-seg button{height:24px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:var(--ink2);font:inherit;font-size:12px;cursor:pointer;transition:background .2s,color .2s}
+.lf-root .lf-seg button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(31,35,40,.15)}
 .lf-where{position:relative}
-.lf-root .lf-where-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:0;border-radius:15px;background:transparent;color:#3A3F38;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
-.lf-root .lf-where-btn:hover{background:rgba(31,35,40,.06)}
-.lf-where-menu{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;flex-direction:column;min-width:200px;padding:6px;border-radius:14px;background:#fff;box-shadow:0 14px 34px -12px rgba(31,35,40,.4),0 0 0 1px rgba(31,35,40,.06);animation:lf-swap .2s cubic-bezier(.2,.9,.3,1.2) both;z-index:5}
-.lf-root .lf-where-menu button{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:#1F2328;font:inherit;font-size:13px;text-align:left;cursor:pointer;white-space:nowrap}
+.lf-root .lf-where-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:0;border-radius:15px;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
+.lf-root .lf-where-btn:hover{background:var(--fill)}
+.lf-where-menu{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;flex-direction:column;min-width:200px;padding:6px;border-radius:14px;background:var(--card);box-shadow:0 14px 34px -12px rgba(31,35,40,.4),0 0 0 1px rgba(31,35,40,.06);animation:lf-swap .2s cubic-bezier(.2,.9,.3,1.2) both;z-index:5}
+.lf-root .lf-where-menu button{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:inherit;font-size:13px;text-align:left;cursor:pointer;white-space:nowrap}
 .lf-root .lf-where-menu button:hover{background:#F4F5F1}
-.lf-root .lf-where-menu button::before{content:'';width:14px;height:14px;flex:none;border-radius:7px;box-shadow:inset 0 0 0 1.5px #C9CDC5}
+.lf-root .lf-where-menu button::before{content:'';width:14px;height:14px;flex:none;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--line)}
 .lf-root .lf-where-menu button.on::before{box-shadow:inset 0 0 0 4.5px #1E9E6A}
-.lf-root .lf-where-menu button.sub{height:28px;font-size:12px;color:#5E645C;padding-left:32px}
+.lf-root .lf-where-menu button.sub{height:28px;font-size:12px;color:var(--ink2);padding-left:32px}
 .lf-root .lf-where-menu button.sub::before{display:none}
-.lf-pull-hint{position:absolute;left:50%;translate:-50% 0;top:calc(100% - 4px);display:inline-flex;align-items:center;gap:5px;margin-top:62px;font-size:12px;font-weight:600;color:#5E645C;white-space:nowrap;pointer-events:none;opacity:0;animation:lf-fade .4s .3s forwards}
+.lf-pull-hint{position:absolute;left:50%;translate:-50% 0;top:calc(100% - 4px);display:inline-flex;align-items:center;gap:5px;margin-top:62px;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap;pointer-events:none;opacity:0;animation:lf-fade .4s .3s forwards}
 .lf-pull-hint svg{animation:lf-tug 1.4s ease-in-out infinite}
 @keyframes lf-tug{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
 .lf-root .lf-printbtn{width:28px;height:28px;margin:-4px -4px -4px 4px;border:0;border-radius:9px;background:rgba(255,255,255,.12);color:#fff;display:inline-grid;place-items:center;cursor:pointer;transition:background .2s,transform .2s}
@@ -2932,7 +2939,7 @@ var RECEIPT_CSS = `
 
 // src/cards.jsx
 var import_react5 = __toESM(require("react"));
-var C = { sleep: "#3D4FB8", move: "#1E9E6A", food: "#F2994A", money: "#7C5CE0", body: "#0E8A8A", ink: "#1F2328" };
+var C = { sleep: "#3D4FB8", move: "#1E9E6A", food: "#F2994A", money: "#7C5CE0", body: "#0E8A8A", ink: "var(--ink)" };
 var WEEK2 = "日一二三四五六";
 var md = (t) => {
   const d = new Date(t);
@@ -3087,7 +3094,7 @@ function MoveBars({ S: S2 }) {
       className: hops[i] ? "lf-hop" : x.workoutMin ? "lf-growy" : "",
       style: { width: "100%", maxWidth: 22, height: x.workoutMin ? Math.max(10, Math.min(100, x.workoutMin / 0.9)) + "%" : 6, maxHeight: "calc(100% - 22px)", borderRadius: 6, background: x.workoutMin ? C.move : i === hi ? "#C9CEC6" : "#E2E5DF", transformOrigin: "50% 100%", transition: "height .6s cubic-bezier(.2,.8,.2,1), background .2s" }
     }
-  ), /* @__PURE__ */ import_react5.default.createElement("span", { style: { fontSize: 11.5, color: i === hi ? C.move : x.today ? C.ink : "#5E645C", fontWeight: x.today || i === hi ? 700 : 400, transition: "color .2s" } }, x.label)))));
+  ), /* @__PURE__ */ import_react5.default.createElement("span", { style: { fontSize: 11.5, color: i === hi ? C.move : x.today ? C.ink : "var(--ink2)", fontWeight: x.today || i === hi ? 700 : 400, transition: "color .2s" } }, x.label)))));
 }
 function useTaste(ref, S2) {
   const p = useCardPointer(ref);
@@ -3121,10 +3128,10 @@ function WeightScrub({ weights, now, children }) {
   return /* @__PURE__ */ import_react5.default.createElement("div", { ref, style: { position: "relative", height: "100%" } }, children, dot && /* @__PURE__ */ import_react5.default.createElement(import_react5.default.Fragment, null, /* @__PURE__ */ import_react5.default.createElement("span", { className: "lf-wline", style: { left: dot.x * 100 + "%" } }), /* @__PURE__ */ import_react5.default.createElement("span", { className: "lf-wdot", style: { left: dot.x * 100 + "%", top: dot.y * 100 + "%" } }), /* @__PURE__ */ import_react5.default.createElement("span", { className: "lf-wtag", style: { left: `clamp(24px, ${dot.x * 100}%, calc(100% - 24px))` } }, new Date(dot.q.t).getMonth() + 1 + "/" + new Date(dot.q.t).getDate(), " · ", dot.q.kg.toFixed(1))));
 }
 function BackHead({ title, tone }) {
-  return /* @__PURE__ */ import_react5.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 12 } }, /* @__PURE__ */ import_react5.default.createElement("h2", { className: "lf-h" }, title), /* @__PURE__ */ import_react5.default.createElement("span", { style: { fontSize: 12, opacity: tone ? 0.75 : 1, color: tone ? void 0 : "#8A8F86" } }, "点一下翻回去"));
+  return /* @__PURE__ */ import_react5.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 12 } }, /* @__PURE__ */ import_react5.default.createElement("h2", { className: "lf-h" }, title), /* @__PURE__ */ import_react5.default.createElement("span", { style: { fontSize: 12, opacity: tone ? 0.75 : 1, color: tone ? void 0 : "var(--ink3)" } }, "点一下翻回去"));
 }
 function Eq({ rows, tone }) {
-  return /* @__PURE__ */ import_react5.default.createElement("div", { className: "lf-eq", style: { "--line": tone ? "rgba(255,255,255,.25)" : "#E4E6E0" } }, rows.map((r, i) => /* @__PURE__ */ import_react5.default.createElement("div", { key: i, className: "lf-eq-row" + (r.total ? " total" : ""), style: { animationDelay: 0.12 + i * 0.07 + "s" } }, /* @__PURE__ */ import_react5.default.createElement("span", { className: "lf-eq-op" }, r.op || ""), /* @__PURE__ */ import_react5.default.createElement("span", { style: { flex: 1 } }, r.label), /* @__PURE__ */ import_react5.default.createElement("b", { className: "lf-num" }, r.value))));
+  return /* @__PURE__ */ import_react5.default.createElement("div", { className: "lf-eq", style: { "--line": tone ? "rgba(255,255,255,.25)" : "var(--fill2)" } }, rows.map((r, i) => /* @__PURE__ */ import_react5.default.createElement("div", { key: i, className: "lf-eq-row" + (r.total ? " total" : ""), style: { animationDelay: 0.12 + i * 0.07 + "s" } }, /* @__PURE__ */ import_react5.default.createElement("span", { className: "lf-eq-op" }, r.op || ""), /* @__PURE__ */ import_react5.default.createElement("span", { style: { flex: 1 } }, r.label), /* @__PURE__ */ import_react5.default.createElement("b", { className: "lf-num" }, r.value))));
 }
 function BackEnergy({ S: S2 }) {
   return /* @__PURE__ */ import_react5.default.createElement("div", { className: "lf-back" }, /* @__PURE__ */ import_react5.default.createElement(BackHead, { title: "今天还能吃，怎么算的" }), /* @__PURE__ */ import_react5.default.createElement(Eq, { rows: [
@@ -3162,24 +3169,24 @@ var CARDS_CSS = `
 .lf-root .lf-name:hover{background:rgba(255,255,255,.06)}
 .lf-name-add{color:rgba(244,245,241,.35);font-size:.6em;font-weight:500;letter-spacing:0;vertical-align:.25em}
 .lf-name-input{width:6em;border:0;border-bottom:2px solid rgba(244,245,241,.4);background:transparent;color:inherit;font:inherit;letter-spacing:inherit;outline:none;padding:0}
-.lf-todo-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -10px;padding:0 10px 4px;scrollbar-width:thin;scrollbar-color:#D5D8D1 transparent;-webkit-mask-image:linear-gradient(#000 calc(100% - 14px),transparent);mask-image:linear-gradient(#000 calc(100% - 14px),transparent)}
+.lf-todo-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -10px;padding:0 10px 4px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-mask-image:linear-gradient(#000 calc(100% - 14px),transparent);mask-image:linear-gradient(#000 calc(100% - 14px),transparent)}
 .lf-todo-list::-webkit-scrollbar{width:6px}
-.lf-todo-list::-webkit-scrollbar-thumb{background:#D5D8D1;border-radius:3px}
+.lf-todo-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
 .lf-archive{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -6px;padding:0 6px 8px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin}
-.lf-archive-day{font-size:11.5px;font-weight:600;color:#8A8F86;letter-spacing:.04em;margin:2px 0 4px}
-.lf-archive-item{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;margin:0 -8px;border-radius:10px;font-size:14px;color:#5E645C;animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both;transition:background .2s}
+.lf-archive-day{font-size:11.5px;font-weight:600;color:var(--ink3);letter-spacing:.04em;margin:2px 0 4px}
+.lf-archive-item{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;margin:0 -8px;border-radius:10px;font-size:14px;color:var(--ink2);animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both;transition:background .2s}
 .lf-archive-item:hover{background:#F4F5F1}
 .lf-archive-item.out{pointer-events:none;animation:lf-archout .55s cubic-bezier(.45,0,.55,1) forwards;will-change:transform,opacity}
 @keyframes lf-archout{0%{transform:none;opacity:1;max-height:40px;min-height:34px}45%{transform:translate(18px,-10px) rotate(2deg);opacity:.85;max-height:40px;min-height:34px}100%{transform:translate(70px,-30px) rotate(6deg) scale(.9);opacity:0;max-height:0;min-height:0}}
 .lf-todo.lf-arrive{animation:lf-arrive 1.1s var(--ad,.5s) cubic-bezier(.22,1,.36,1) both}
 @keyframes lf-arrive{0%{transform:translateY(-26px) rotate(-1.5deg);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
 @keyframes lf-arrivecheck_unused{0%{transform:scale(1)}40%{transform:scale(1.25);border-color:#1E9E6A;box-shadow:0 0 0 4px rgba(30,158,106,.18)}100%{transform:none}}
-.lf-archive-tick{width:16px;height:16px;border-radius:5px;background:#DDF2E8;color:#1E9E6A;display:grid;place-items:center;flex:none}
+.lf-archive-tick{width:16px;height:16px;border-radius:5px;background:color-mix(in srgb,#1E9E6A 14%,var(--card));color:#1E9E6A;display:grid;place-items:center;flex:none}
 .lf-archive-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lf-archive-amt{font-size:12.5px;color:#7C5CE0;font-variant-numeric:tabular-nums}
 .lf-root .lf-archive-back{height:26px;padding:0 10px;border:0;border-radius:13px;background:transparent;color:#1E9E6A;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;opacity:0;transition:opacity .2s,background .2s}
 .lf-archive-item:hover .lf-archive-back,.lf-archive-back:focus-visible{opacity:1}
-.lf-root .lf-archive-back:hover{background:#E5F4EC}
+.lf-root .lf-archive-back:hover{background:color-mix(in srgb,#1E9E6A 10%,var(--card))}
 .lf-root .lf-todo{padding-left:8px;padding-right:6px;margin:0 -8px;width:calc(100% + 14px)}
 .lf-nudges{display:flex;flex-direction:column;gap:12px;margin-top:auto}
 .lf-nudge-row{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
@@ -3208,11 +3215,11 @@ var CARDS_CSS = `
 .lf-tip-pager i.on{width:12px;background:rgba(244,245,241,.8)}
 .lf-root .lf-alldone{flex:1;min-height:0;flex-direction:row;gap:14px;text-align:left;padding:14px 0 4px}
 .lf-root .lf-alldone .lf-ad-badge{width:46px;height:46px;flex:none}
-.lf-root .lf-sweep-btn,.lf-sweep-btn{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;border-radius:14px;background:#F1F2EE;color:#3A3F38;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .25s,color .25s,padding .3s cubic-bezier(.2,.9,.3,1.2),transform .2s,box-shadow .3s;animation:lf-pillin .35s cubic-bezier(.2,.9,.3,1.3)}
-.lf-sweep-btn:hover{background:#E6E8E2}
+.lf-root .lf-sweep-btn,.lf-sweep-btn{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;border-radius:14px;background:var(--fill);color:#3A3F38;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .25s,color .25s,padding .3s cubic-bezier(.2,.9,.3,1.2),transform .2s,box-shadow .3s;animation:lf-pillin .35s cubic-bezier(.2,.9,.3,1.3)}
+.lf-sweep-btn:hover{background:var(--fill2)}
 .lf-sweep-btn:not(.pending):hover svg{animation:lf-broom .5s ease-in-out infinite alternate;transform-origin:70% 30%}
 .lf-sweep-btn:active{transform:scale(.95)}
-.lf-sweep-btn.pending{padding:0 4px 0 4px;background:#fff;color:#1E9E6A;box-shadow:0 0 0 1px #DDEFE6,0 6px 18px -6px rgba(30,158,106,.45)}
+.lf-sweep-btn.pending{padding:0 4px 0 4px;background:var(--card);color:#1E9E6A;box-shadow:0 0 0 1px color-mix(in srgb,#1E9E6A 18%,var(--card)),0 6px 18px -6px rgba(30,158,106,.45)}
 .lf-sweep-btn.pending:hover{background:#F6FBF8}
 @keyframes lf-pillin{from{transform:scale(.85);opacity:.4}to{transform:none;opacity:1}}
 .lf-sweep-glow{position:absolute;z-index:-1;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,rgba(30,158,106,.18),rgba(30,158,106,.06) 70%,transparent);transform-origin:0 50%;animation:lf-drain var(--dur,5s) linear forwards}
@@ -3223,7 +3230,7 @@ var CARDS_CSS = `
 .lf-roll{display:block;animation:lf-roll .35s cubic-bezier(.2,.9,.3,1.25)}
 @keyframes lf-roll{from{transform:translateY(110%);opacity:0;filter:blur(1.5px)}to{transform:none;opacity:1;filter:none}}
 .lf-sweep-label{white-space:nowrap}
-.lf-sweep-undo{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:10px;background:#E5F4EC;color:#1E9E6A;transition:transform .3s,background .2s}
+.lf-sweep-undo{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:10px;background:color-mix(in srgb,#1E9E6A 10%,var(--card));color:#1E9E6A;transition:transform .3s,background .2s}
 .lf-sweep-btn.pending:hover .lf-sweep-undo{transform:rotate(-200deg);background:#1E9E6A;color:#fff}
 .lf-todo{width:100%;padding:10px 0;min-height:44px;gap:10px;position:relative}
 .lf-todo-hit{display:flex;align-items:center;gap:10px;flex:1;min-width:0;border:0;background:transparent;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;min-height:24px}
@@ -3232,9 +3239,9 @@ var CARDS_CSS = `
 .lf-todo:hover .lf-todo-acts,.lf-todo:has(:focus-visible) .lf-todo-acts{opacity:1}
 .lf-todo.done .lf-todo-acts{opacity:.22}
 .lf-todo.done:hover .lf-todo-acts{opacity:1}
-.lf-todo-act{width:28px;height:28px;border:0;border-radius:9px;background:transparent;color:#8A8F86;display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,transform .15s}
-.lf-todo-act:hover{background:#F1F2EE;color:#1F2328}
-.lf-todo-act.del:hover{background:#FDECEC;color:#D9363E}
+.lf-todo-act{width:28px;height:28px;border:0;border-radius:9px;background:transparent;color:var(--ink3);display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,transform .15s}
+.lf-todo-act:hover{background:var(--fill);color:var(--ink)}
+.lf-todo-act.del:hover{background:color-mix(in srgb,#E5484D 13%,var(--card));color:#D9363E}
 .lf-todo-act.del:hover svg{animation:lf-binshake .4s ease-in-out}
 @keyframes lf-binshake{25%{transform:rotate(-12deg)}75%{transform:rotate(10deg)}}
 .lf-todo-act:active{transform:scale(.88)}
@@ -3250,14 +3257,14 @@ var CARDS_CSS = `
 .lf-todo.back .lf-check,.lf-todo.back .lf-todo-amt{animation:lf-dustbox .4s cubic-bezier(.2,.9,.3,1.4) reverse both}
 .lf-root .lf-todo-undo .lf-sweep-btn.pending{padding:0 3px;height:24px;font-size:12px;gap:5px}
 .lf-todo-undo .lf-sweep-num,.lf-todo-undo .lf-sweep-undo{width:17px;height:17px;font-size:10.5px}
-.lf-todo-undo{justify-content:space-between;background:linear-gradient(90deg,#FBFCFA,transparent);border-radius:12px;animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both}
+.lf-todo-undo{justify-content:space-between;background:linear-gradient(90deg,var(--card),transparent);border-radius:12px;animation:lf-swap .3s cubic-bezier(.2,.8,.2,1) both}
 .lf-todo-undo.gone{overflow:hidden;animation:lf-undogone .36s cubic-bezier(.5,0,.75,0) forwards}
 @keyframes lf-undogone{to{max-height:0;min-height:0;padding-top:0;padding-bottom:0;opacity:0;border-top-width:0;transform:scale(.96)}}
-.lf-todo-ghost{font-size:13.5px;color:#8A8F86;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lf-todo-ghost{font-size:13.5px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .lf-todo-ghost s{color:#B5B9B1;text-decoration-color:rgba(217,54,62,.55)}
 .lf-todo-input:focus,.lf-todo-input:focus-visible{outline:none!important}
-.lf-todo-input{flex:1;min-width:0;height:32px;margin:-4px 0;padding:0 10px;border:1.5px solid #1E9E6A;border-radius:9px;background:#fff;font:inherit;font-size:15px;color:#1F2328;outline:none;box-shadow:0 0 0 4px rgba(30,158,106,.12);animation:lf-swap .2s ease both}
-.lf-todo-hint{font-size:11.5px;color:#8A8F86;white-space:nowrap}
+.lf-todo-input{flex:1;min-width:0;height:32px;margin:-4px 0;padding:0 10px;border:1.5px solid #1E9E6A;border-radius:9px;background:var(--card);font:inherit;font-size:15px;color:var(--ink);outline:none;box-shadow:0 0 0 4px rgba(30,158,106,.12);animation:lf-swap .2s ease both}
+.lf-todo-hint{font-size:11.5px;color:var(--ink3);white-space:nowrap}
 .lf-todo.saved .lf-strike{animation:lf-saved 1s ease both}
 @keyframes lf-saved{0%{background-color:rgba(30,158,106,.22)}100%{background-color:transparent}}
 .lf-todo.lf-pend{opacity:.38;transform:translateX(8px);transition:opacity .35s,transform .45s cubic-bezier(.2,.9,.3,1.2)}
@@ -3288,7 +3295,7 @@ var CARDS_CSS = `
 .lf-hop{animation:lf-hop .55s cubic-bezier(.3,1.6,.5,1)}
 @keyframes lf-hop{0%{transform:scaleY(1)}30%{transform:scaleY(1.22) translateY(-3px)}55%{transform:scaleY(.9)}75%{transform:scaleY(1.05)}100%{transform:none}}
 .lf-taste{position:absolute;top:7px;height:12px;border-radius:0 6px 6px 0;background:repeating-linear-gradient(135deg,rgba(242,153,74,.55) 0 4px,rgba(242,153,74,.25) 4px 8px);pointer-events:none;transition:width .12s}
-.lf-taste-tip{position:absolute;top:-16px;transition:left .1s;font-variant-numeric:tabular-nums;transform:translateX(-50%);font-size:11.5px;font-weight:700;color:#C26A1E;white-space:nowrap;pointer-events:none}
+.lf-taste-tip{position:absolute;top:-16px;transition:left .1s;font-variant-numeric:tabular-nums;transform:translateX(-50%);font-size:11.5px;font-weight:700;color:var(--food-ink);white-space:nowrap;pointer-events:none}
 .lf-taste-pin{position:absolute;top:3px;bottom:3px;width:2px;margin-left:-1px;border-radius:1px;background:#F2994A;pointer-events:none}
 .lf-wline{position:absolute;top:0;bottom:0;width:1px;transition:left .12s;background:rgba(14,138,138,.35);pointer-events:none}
 .lf-wdot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;border:2.5px solid #0E8A8A;pointer-events:none;transition:left .12s,top .12s}
@@ -3543,9 +3550,9 @@ function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdopt, onUn
     setDraft((d) => ({ ...d, [s.id]: v }));
   };
   const box = rootRect || { left: 0, width: window.innerWidth };
-  return /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-overlay" + (closing ? " out" : ""), style: { left: box.left, width: box.width }, role: "dialog", "aria-modal": "true", "aria-label": "我的目标" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-backdrop", onClick: onClose }), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-sheet" }, /* @__PURE__ */ import_react6.default.createElement("header", { className: "gl-head" }, /* @__PURE__ */ import_react6.default.createElement("div", null, /* @__PURE__ */ import_react6.default.createElement("h2", { style: { margin: 0, fontSize: 26, fontWeight: 650, letterSpacing: "-0.02em" } }, "把日子当成一局游戏"), /* @__PURE__ */ import_react6.default.createElement("p", { style: { margin: "6px 0 0", fontSize: 14, color: "#5E645C", lineHeight: 1.6, maxWidth: 620 } }, "六层目标，从靶心的每天一圈圈往外。下面的建议是按你记下的数据算的，觉得合适就采纳，数字可以先调。结构参考 Dan Koe《How to fix your entire life in 1 day》。")), /* @__PURE__ */ import_react6.default.createElement("button", { className: "lf-icon", onClick: onClose, "aria-label": "关闭目标", style: { width: 40, height: 40, borderRadius: 20, background: "#F1F2EE", color: "#1F2328", flex: "none" } }, /* @__PURE__ */ import_react6.default.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react6.default.createElement("path", { d: "M6 6l12 12M18 6L6 18" })))), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-body" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-target-col" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-target" + (locked ? " locked" : "") }, /* @__PURE__ */ import_react6.default.createElement("svg", { ref: svgRef, viewBox: "0 0 360 360", width: "100%", role: "img", "aria-label": "六层目标，已点亮 " + doneCount + " 层" }, LAYERS.slice().reverse().map((L, i) => {
+  return /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-overlay" + (closing ? " out" : ""), style: { left: box.left, width: box.width }, role: "dialog", "aria-modal": "true", "aria-label": "我的目标" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-backdrop", onClick: onClose }), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-sheet" }, /* @__PURE__ */ import_react6.default.createElement("header", { className: "gl-head" }, /* @__PURE__ */ import_react6.default.createElement("div", null, /* @__PURE__ */ import_react6.default.createElement("h2", { style: { margin: 0, fontSize: 26, fontWeight: 650, letterSpacing: "-0.02em" } }, "把日子当成一局游戏"), /* @__PURE__ */ import_react6.default.createElement("p", { style: { margin: "6px 0 0", fontSize: 14, color: "var(--ink2)", lineHeight: 1.6, maxWidth: 620 } }, "六层目标，从靶心的每天一圈圈往外。下面的建议是按你记下的数据算的，觉得合适就采纳，数字可以先调。结构参考 Dan Koe《How to fix your entire life in 1 day》。")), /* @__PURE__ */ import_react6.default.createElement("button", { className: "lf-icon", onClick: onClose, "aria-label": "关闭目标", style: { width: 40, height: 40, borderRadius: 20, background: "var(--fill)", color: "var(--ink)", flex: "none" } }, /* @__PURE__ */ import_react6.default.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react6.default.createElement("path", { d: "M6 6l12 12M18 6L6 18" })))), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-body" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-target-col" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-target" + (locked ? " locked" : "") }, /* @__PURE__ */ import_react6.default.createElement("svg", { ref: svgRef, viewBox: "0 0 360 360", width: "100%", role: "img", "aria-label": "六层目标，已点亮 " + doneCount + " 层" }, LAYERS.slice().reverse().map((L, i) => {
     const on = layerDone(L.key), isRule = L.key === "rules";
-    return /* @__PURE__ */ import_react6.default.createElement("g", { key: L.key, className: "gl-ring" + (on ? " on" : "") + (hot === L.key ? " hot" : ""), style: { "--c": L.color, animationDelay: (LAYERS.length - 1 - i) * 0.09 + "s" } }, L.key === "daily" ? /* @__PURE__ */ import_react6.default.createElement("circle", { cx: "180", cy: "180", r: L.r - 4, className: "gl-core", fill: on ? L.color : "#F1F2EE" }) : null, /* @__PURE__ */ import_react6.default.createElement(
+    return /* @__PURE__ */ import_react6.default.createElement("g", { key: L.key, className: "gl-ring" + (on ? " on" : "") + (hot === L.key ? " hot" : ""), style: { "--c": L.color, animationDelay: (LAYERS.length - 1 - i) * 0.09 + "s" } }, L.key === "daily" ? /* @__PURE__ */ import_react6.default.createElement("circle", { cx: "180", cy: "180", r: L.r - 4, className: "gl-core", style: { fill: on ? L.color : "var(--fill)" } }) : null, /* @__PURE__ */ import_react6.default.createElement(
       "circle",
       {
         cx: "180",
@@ -3553,7 +3560,7 @@ function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdopt, onUn
         r: L.r,
         fill: "none",
         pathLength: "1",
-        stroke: on ? L.color : "#DADDD6",
+        style: { stroke: on ? L.color : "var(--line)" },
         strokeWidth: isRule ? 2.5 : 14,
         strokeDasharray: isRule ? "0.012 0.012" : void 0,
         strokeOpacity: on ? L.key === "anti" ? 0.85 : 1 : 1,
@@ -3576,9 +3583,9 @@ function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdopt, onUn
         dangerouslySetInnerHTML: { __html: `<title>${L.game}：${s.title}</title>` + dartMarkup(L.color) }
       }
     ));
-  })), /* @__PURE__ */ import_react6.default.createElement("g", { className: "gl-core-text" }, /* @__PURE__ */ import_react6.default.createElement("text", { x: "180", y: locked ? 186 : 182, textAnchor: "middle", fontSize: "15", fontWeight: "700", fill: layerDone("daily") ? "#fff" : "#8A8F86" }, locked ? "开始" : doneCount + "/6"), !locked && /* @__PURE__ */ import_react6.default.createElement("text", { x: "180", y: "198", textAnchor: "middle", fontSize: "9.5", fontWeight: "600", fill: layerDone("daily") ? "rgba(255,255,255,.85)" : "#A3A89F" }, "层点亮")), plus.map((p) => {
+  })), /* @__PURE__ */ import_react6.default.createElement("g", { className: "gl-core-text" }, /* @__PURE__ */ import_react6.default.createElement("text", { x: "180", y: locked ? 186 : 182, textAnchor: "middle", fontSize: "15", fontWeight: "700", style: { fill: layerDone("daily") ? "#fff" : "var(--ink3)" } }, locked ? "开始" : doneCount + "/6"), !locked && /* @__PURE__ */ import_react6.default.createElement("text", { x: "180", y: "198", textAnchor: "middle", fontSize: "9.5", fontWeight: "600", style: { fill: layerDone("daily") ? "rgba(255,255,255,.85)" : "var(--ink3)" } }, "层点亮")), plus.map((p) => {
     return /* @__PURE__ */ import_react6.default.createElement("text", { key: p.id, x: p.tip.x + 20, y: p.tip.y - 34, textAnchor: "middle", fontSize: "15", fontWeight: "800", fill: p.color, className: "gl-plus" }, p.text);
-  }))), /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-tally" }, /* @__PURE__ */ import_react6.default.createElement("b", null, "采纳 ", itemCount, " 项"), /* @__PURE__ */ import_react6.default.createElement("i", null, "·"), "点亮 ", /* @__PURE__ */ import_react6.default.createElement("b", null, doneCount, "/6"), " 层", /* @__PURE__ */ import_react6.default.createElement("span", null, "每采纳一项，就往那一圈扔一支飞镖。一圈上有了第一支，这层就点亮。")), /* @__PURE__ */ import_react6.default.createElement("ul", { className: "gl-legend" }, LAYERS.map((L) => /* @__PURE__ */ import_react6.default.createElement("li", { key: L.key, onMouseEnter: () => setHot(L.key), onMouseLeave: () => setHot(null), className: layerDone(L.key) ? "on" : "" }, /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-dot", style: { background: layerDone(L.key) ? L.color : "#DADDD6" } }), /* @__PURE__ */ import_react6.default.createElement("b", null, L.game), /* @__PURE__ */ import_react6.default.createElement("span", null, L.name), layerDone(L.key) && /* @__PURE__ */ import_react6.default.createElement("em", { className: "gl-count", style: { background: L.color } }, picks(L.key).length)))), locked && /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-locked-msg" }, "六层都定好了。现在每一天，都是这局游戏里的一回合。")), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-deck" }, LAYERS.map((L) => {
+  }))), /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-tally" }, /* @__PURE__ */ import_react6.default.createElement("b", null, "采纳 ", itemCount, " 项"), /* @__PURE__ */ import_react6.default.createElement("i", null, "·"), "点亮 ", /* @__PURE__ */ import_react6.default.createElement("b", null, doneCount, "/6"), " 层", /* @__PURE__ */ import_react6.default.createElement("span", null, "每采纳一项，就往那一圈扔一支飞镖。一圈上有了第一支，这层就点亮。")), /* @__PURE__ */ import_react6.default.createElement("ul", { className: "gl-legend" }, LAYERS.map((L) => /* @__PURE__ */ import_react6.default.createElement("li", { key: L.key, onMouseEnter: () => setHot(L.key), onMouseLeave: () => setHot(null), className: layerDone(L.key) ? "on" : "" }, /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-dot", style: { background: layerDone(L.key) ? L.color : "var(--line)" } }), /* @__PURE__ */ import_react6.default.createElement("b", null, L.game), /* @__PURE__ */ import_react6.default.createElement("span", null, L.name), layerDone(L.key) && /* @__PURE__ */ import_react6.default.createElement("em", { className: "gl-count", style: { background: L.color } }, picks(L.key).length)))), locked && /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-locked-msg" }, "六层都定好了。现在每一天，都是这局游戏里的一回合。")), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-deck" }, LAYERS.map((L) => {
     const list = suggestions.filter((s) => s.layer === L.key);
     if (!list.length) return null;
     return /* @__PURE__ */ import_react6.default.createElement("section", { key: L.key, className: "gl-group", onMouseEnter: () => setHot(L.key), onMouseLeave: () => setHot(null) }, /* @__PURE__ */ import_react6.default.createElement("h3", { className: "gl-group-title" }, /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-tag", style: { background: L.color } }, L.game), L.name), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-cards" }, list.map((s, i) => {
@@ -3608,15 +3615,15 @@ var GOALS_CSS = `
 @keyframes gl-spin{to{transform:rotate(360deg)}}
 .gl-overlay{position:fixed;top:0;bottom:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .gl-backdrop{position:absolute;inset:0;background:rgba(31,35,40,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:gl-fade .35s ease both}
-.gl-sheet{position:relative;width:min(1240px,calc(100% - 32px));height:calc(100% - 40px);background:#F7F8F5;border-radius:32px 32px 0 0;box-shadow:0 -20px 60px rgba(31,35,40,.25);display:flex;flex-direction:column;overflow:hidden;animation:gl-up .55s cubic-bezier(.2,.9,.25,1.05) both}
+.gl-sheet{position:relative;width:min(1240px,calc(100% - 32px));height:calc(100% - 40px);background:var(--sheet);border-radius:32px 32px 0 0;box-shadow:0 -20px 60px rgba(31,35,40,.25);display:flex;flex-direction:column;overflow:hidden;animation:gl-up .55s cubic-bezier(.2,.9,.25,1.05) both}
 .gl-overlay.out .gl-sheet{animation:gl-down .38s cubic-bezier(.4,0,.6,1) both}
 .gl-overlay.out .gl-backdrop{animation:gl-fade .38s ease reverse both}
 @keyframes gl-up{from{transform:translateY(100%)}to{transform:none}}
 @keyframes gl-down{to{transform:translateY(100%)}}
 @keyframes gl-fade{from{opacity:0}to{opacity:1}}
-.gl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:28px 32px 18px;color:#1F2328}
+.gl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:28px 32px 18px;color:var(--ink)}
 .gl-body{flex:1;min-height:0;display:flex;gap:28px;padding:0 32px 32px;overflow:hidden}
-.gl-target-col{flex:0 0 340px;display:flex;flex-direction:column;gap:14px;color:#1F2328}
+.gl-target-col{flex:0 0 340px;display:flex;flex-direction:column;gap:14px;color:var(--ink)}
 .gl-target{width:100%;transition:transform 1s cubic-bezier(.3,1.4,.5,1)}
 .gl-target svg{overflow:visible}
 .gl-target.locked{transform:rotate(360deg)}
@@ -3656,46 +3663,46 @@ var GOALS_CSS = `
 .gl-target:not(.locked) .gl-pip:hover{transform:scale(1.3)}
 .gl-count{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;color:#fff;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-grid;place-items:center;box-sizing:border-box}
 .gl-legend li{white-space:nowrap}
-.gl-tally{margin:4px 0 12px;font-size:13.5px;color:#3A3F38;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
-.gl-tally b{font-weight:650}.gl-tally i{font-style:normal;color:#A3A89F}
-.gl-tally span{flex-basis:100%;font-size:12px;color:#8A8F86;line-height:1.5}
+.gl-tally{margin:4px 0 12px;font-size:13.5px;color:var(--ink);display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
+.gl-tally b{font-weight:650}.gl-tally i{font-style:normal;color:var(--ink3)}
+.gl-tally span{flex-basis:100%;font-size:12px;color:var(--ink3);line-height:1.5}
 .gl-legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
 .gl-legend li{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 10px;border-radius:10px;transition:background .2s}
-.gl-legend li:hover{background:#ECEEE9}
-.gl-legend b{font-weight:600}.gl-legend span:not(.gl-dot){color:#6F756D}
+.gl-legend li:hover{background:var(--rule)}
+.gl-legend b{font-weight:600}.gl-legend span:not(.gl-dot){color:var(--ink2)}
 .gl-dot{width:9px;height:9px;border-radius:5px;flex:none;transition:background .4s}
 .gl-locked-msg{margin:4px 0 0;font-size:14px;line-height:1.6;color:#1E6E4C;animation:lf-rise .5s .3s both}
-.gl-deck{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 6px 40px 2px;display:flex;flex-direction:column;gap:26px;color:#1F2328}
+.gl-deck{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 6px 40px 2px;display:flex;flex-direction:column;gap:26px;color:var(--ink)}
 .gl-group-title{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:15px;font-weight:600}
 .gl-tag{color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px}
 .gl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.gl-card{position:relative;background:#fff;border-radius:22px;padding:18px 18px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-shadow:0 1px 0 rgba(31,35,40,.04);transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,opacity .3s;animation:lf-rise .5s cubic-bezier(.2,.8,.2,1) both;perspective:800px}
+.gl-card{position:relative;background:var(--card);border-radius:22px;padding:18px 18px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-shadow:0 1px 0 rgba(31,35,40,.04);transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,opacity .3s;animation:lf-rise .5s cubic-bezier(.2,.8,.2,1) both;perspective:800px}
 .gl-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px -12px rgba(31,35,40,.25)}
 .gl-card::before{content:'';position:absolute;left:0;top:18px;bottom:18px;width:0;border-radius:0 3px 3px 0;background:var(--c);transition:width .3s}
-.gl-card.done{background:color-mix(in srgb,var(--c) 7%,#fff)}
+.gl-card.done{background:color-mix(in srgb,var(--c) 7%,var(--card))}
 .gl-card.done::before{width:4px}
 .gl-card.gl-sent{transform:scale(.96);opacity:.7}
 .gl-flip{animation:gl-flip .46s cubic-bezier(.4,0,.2,1)}
 @keyframes gl-flip{0%{transform:rotateY(0)}49%{transform:rotateY(90deg);opacity:.2}51%{transform:rotateY(-90deg);opacity:.2}100%{transform:rotateY(0)}}
-.gl-card-title{font-size:13px;color:#6F756D;margin-bottom:6px}
+.gl-card-title{font-size:13px;color:var(--ink2);margin-bottom:6px}
 .gl-num-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gl-num{font-size:30px;font-weight:600;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;animation:gl-tick .25s cubic-bezier(.2,.9,.3,1.4)}
-.gl-num small{font-size:13px;font-weight:400;color:#6F756D;letter-spacing:0}
+.gl-num small{font-size:13px;font-weight:400;color:var(--ink2);letter-spacing:0}
 @keyframes gl-tick{from{transform:translateY(-6px);opacity:.4}to{transform:none;opacity:1}}
-.gl-step{width:30px;height:30px;border-radius:15px;border:0;background:#F1F2EE;color:#1F2328;font-size:17px;line-height:1;cursor:pointer;transition:background .2s,transform .15s}
-.gl-step:hover:not(:disabled){background:color-mix(in srgb,var(--c) 18%,#fff)}
+.gl-step{width:30px;height:30px;border-radius:15px;border:0;background:var(--fill);color:var(--ink);font-size:17px;line-height:1;cursor:pointer;transition:background .2s,transform .15s}
+.gl-step:hover:not(:disabled){background:color-mix(in srgb,var(--c) 18%,var(--card))}
 .gl-step:active:not(:disabled){transform:scale(.88)}
 .gl-step:disabled{opacity:.35;cursor:default}
-.gl-after{font-size:12.5px;padding:3px 9px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,#fff);color:color-mix(in srgb,var(--c) 60%,#1F2328)}
+.gl-after{font-size:12.5px;padding:3px 9px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,var(--card));color:color-mix(in srgb,var(--c) 60%,var(--ink))}
 .gl-text{margin:0;font-size:16px;line-height:1.55;font-weight:500}
-.gl-why{margin:8px 0 0;font-size:13px;line-height:1.6;color:#5E645C}
+.gl-why{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--ink2)}
 .gl-actions{display:flex;align-items:center;gap:10px}
 .lf-root .gl-adopt,.gl-adopt{height:34px;padding:0 16px;border-radius:17px;border:0;background:var(--c);color:#fff;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;transition:transform .15s,filter .2s}
 .gl-adopt:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .gl-adopt:active{transform:scale(.94)}
-.gl-link{border:0;background:transparent;color:#5E645C;font:inherit;font-size:13px;cursor:pointer;padding:6px 4px}
-.gl-link:hover{color:#1F2328;text-decoration:underline}
-.gl-adopted{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--c) 70%,#1F2328)}
+.gl-link{border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;cursor:pointer;padding:6px 4px}
+.gl-link:hover{color:var(--ink);text-decoration:underline}
+.gl-adopted{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--c) 70%,var(--ink))}
 .lf-vision{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:rgba(244,245,241,.85);animation:lf-rise .6s both}
 .lf-vision i{width:6px;height:6px;border-radius:3px;background:#B9A6F5;box-shadow:0 0 0 4px rgba(124,92,224,.25)}
 @media (max-width:900px){.gl-body{flex-direction:column;overflow-y:auto}.gl-target-col{flex:none;max-width:360px;align-self:center}.gl-deck{overflow:visible}}
@@ -3989,7 +3996,7 @@ function Card({ id, cls = "", bg, color, refs, flash, armed, hl, dim, children, 
       onClick: onCardClick,
       className: ["lf-card", back ? "has-back" : "", entered ? "" : "lf-enter", W2 ? "lf-widget" : cls, armed ? "armed" : "", hl ? "hl" : "", dim ? "dim" : "", clip ? "clip" : "", dragging ? "lf-lifted" : ""].join(" "),
       style: Object.assign(
-        { background: bg, color, "--c": CARD_COLOR[id] || "#1F2328", "--bgc": bg || "#FFFFFF", "--sheen-c": color && color !== "#1F2328" ? "rgba(255,255,255,.2)" : void 0, animationDelay: 0.15 + idx * 0.05 + "s" },
+        { background: bg, color, "--c": CARD_COLOR[id] || "#1F2328", "--bgc": bg || "var(--card)", "--sheen-c": color && color !== "#1F2328" ? "rgba(255,255,255,.2)" : void 0, animationDelay: 0.15 + idx * 0.05 + "s" },
         lay ? { gridColumn: "span " + lay.span, gridRow: "span " + lay.h, order: lay.order } : null,
         W2 ? null : style
       )
@@ -4295,8 +4302,8 @@ function LifeApp() {
       if (r.type === "expense") out.push({ card: "money", text: "−" + money(r.amount), color: "#fff" });
       if (r.type === "income") out.push({ card: "money", text: "+" + money(r.amount), color: "#fff" });
       if (r.type === "workout") {
-        out.push({ card: "move", text: "+" + r.minutes + " 分钟", color: "#157A51" });
-        out.push({ card: "energy", text: "额度 +" + num(r.kcal), color: "#157A51" });
+        out.push({ card: "move", text: "+" + r.minutes + " 分钟", color: "var(--move-ink)" });
+        out.push({ card: "energy", text: "额度 +" + num(r.kcal), color: "var(--move-ink)" });
       }
       if (r.type === "sleep") out.push({ card: "sleep", text: fmtHM(r.hours), color: "#fff" });
       if (r.type === "weight") out.push({ card: "body", text: r.kg + " kg", color: "#0E6E6E" });
@@ -4864,11 +4871,11 @@ function LifeApp() {
         }
       },
       className: "lf-tl-item lf-insight" + (shownInsight && shownInsight.id === it.id ? " on" : "") + (pinned && pinned.id === it.id ? " pinned" : ""),
-      style: { display: "flex", gap: 12, padding: "11px 8px", margin: "0 -8px", borderTop: i ? "1px solid #ECEEE9" : 0, cursor: "pointer", animationDelay: i * 0.06 + "s" }
+      style: { display: "flex", gap: 12, padding: "11px 8px", margin: "0 -8px", borderTop: i ? "1px solid var(--rule)" : 0, cursor: "pointer", animationDelay: i * 0.06 + "s" }
     },
-    /* @__PURE__ */ import_react7.default.createElement("span", { "data-ev": "insight." + it.id, style: { display: "flex", alignItems: "center", paddingTop: 4, flex: "none", alignSelf: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2[it.from], width: 10, height: 10, borderRadius: 5 } }), /* @__PURE__ */ import_react7.default.createElement("span", { style: { width: 12, height: 2, background: "#D5D8D1" } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2[it.to], width: 10, height: 10, borderRadius: 5 } })),
-    /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 14, lineHeight: 1.55, color: it.tone === "warn" ? "#9B1C20" : C2.ink } }, it.text)
-  )))), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("body", 8), cls: "s3", back: /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement(BackBody, { S: S2, monthWeight: goals.adopted.monthWeight ? goals.monthWeight : null }), S2.wNow != null && /* @__PURE__ */ import_react7.default.createElement(WeightFog, null)) }, S2.wNow != null && /* @__PURE__ */ import_react7.default.createElement(WeightFog, null), /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "体重"), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "body.num", style: { display: "flex", alignItems: "baseline", gap: 6, margin: "12px 0 8px", alignSelf: "flex-start" } }, S2.wNow != null ? /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.wNow, format: (v) => v.toFixed(1), style: { fontSize: 44, fontWeight: 500, lineHeight: 1 } }) : /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 28, fontWeight: 500 } }, "—"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "kg")), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "body.line", style: { flex: 1, minHeight: 56, margin: "4px 0 8px" } }, /* @__PURE__ */ import_react7.default.createElement(WeightScrub, { weights: S2.weights, now: S2.now }, /* @__PURE__ */ import_react7.default.createElement(WeightLine, { weights: S2.weights, now: S2.now }))), /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, color: S2.wDelta != null && S2.wDelta <= 0 ? "#157A51" : "#5E645C" } }, goals.adopted.monthWeight && S2.wNow != null ? "Boss 战：30 天到 " + goals.monthWeight + " kg，" + (S2.wNow <= goals.monthWeight ? "已经打赢了" : "还差 " + (S2.wNow - goals.monthWeight).toFixed(1) + " kg") : S2.wDelta == null ? S2.wNow != null ? "记满一周就能看到变化" : "说「体重 68.2」开始记录" : "一周 " + (S2.wDelta <= 0 ? "−" : "+") + Math.abs(S2.wDelta).toFixed(1) + " kg")), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("week", 9), cls: "s8" }, /* @__PURE__ */ import_react7.default.createElement(WeekBoard, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("todos", 10), cls: "s4", back: /* @__PURE__ */ import_react7.default.createElement(BackTodos, { records: db.records, today: S2.today, onRestore: unarchiveTodo }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 6 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "要做的事"), S2.todos.some((x) => x.done) || pend ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 10 } }, !pend && /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.todos.filter((x) => x.done).length, " / ", S2.todos.length, " 完成"), /* @__PURE__ */ import_react7.default.createElement(
+    /* @__PURE__ */ import_react7.default.createElement("span", { "data-ev": "insight." + it.id, style: { display: "flex", alignItems: "center", paddingTop: 4, flex: "none", alignSelf: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: it.from === "time" ? "var(--ink)" : C2[it.from], width: 10, height: 10, borderRadius: 5 } }), /* @__PURE__ */ import_react7.default.createElement("span", { style: { width: 12, height: 2, background: "var(--line)" } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: it.to === "time" ? "var(--ink)" : C2[it.to], width: 10, height: 10, borderRadius: 5 } })),
+    /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 14, lineHeight: 1.55, color: it.tone === "warn" ? "var(--warn-ink)" : C2.ink } }, it.text)
+  )))), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("body", 8), cls: "s3", back: /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement(BackBody, { S: S2, monthWeight: goals.adopted.monthWeight ? goals.monthWeight : null }), S2.wNow != null && /* @__PURE__ */ import_react7.default.createElement(WeightFog, null)) }, S2.wNow != null && /* @__PURE__ */ import_react7.default.createElement(WeightFog, null), /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "体重"), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "body.num", style: { display: "flex", alignItems: "baseline", gap: 6, margin: "12px 0 8px", alignSelf: "flex-start" } }, S2.wNow != null ? /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.wNow, format: (v) => v.toFixed(1), style: { fontSize: 44, fontWeight: 500, lineHeight: 1 } }) : /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 28, fontWeight: 500 } }, "—"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "kg")), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "body.line", style: { flex: 1, minHeight: 56, margin: "4px 0 8px" } }, /* @__PURE__ */ import_react7.default.createElement(WeightScrub, { weights: S2.weights, now: S2.now }, /* @__PURE__ */ import_react7.default.createElement(WeightLine, { weights: S2.weights, now: S2.now }))), /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, color: S2.wDelta != null && S2.wDelta <= 0 ? "var(--move-ink)" : "var(--ink2)" } }, goals.adopted.monthWeight && S2.wNow != null ? "Boss 战：30 天到 " + goals.monthWeight + " kg，" + (S2.wNow <= goals.monthWeight ? "已经打赢了" : "还差 " + (S2.wNow - goals.monthWeight).toFixed(1) + " kg") : S2.wDelta == null ? S2.wNow != null ? "记满一周就能看到变化" : "说「体重 68.2」开始记录" : "一周 " + (S2.wDelta <= 0 ? "−" : "+") + Math.abs(S2.wDelta).toFixed(1) + " kg")), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("week", 9), cls: "s8" }, /* @__PURE__ */ import_react7.default.createElement(WeekBoard, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("todos", 10), cls: "s4", back: /* @__PURE__ */ import_react7.default.createElement(BackTodos, { records: db.records, today: S2.today, onRestore: unarchiveTodo }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 6 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "要做的事"), S2.todos.some((x) => x.done) || pend ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 10 } }, !pend && /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.todos.filter((x) => x.done).length, " / ", S2.todos.length, " 完成"), /* @__PURE__ */ import_react7.default.createElement(
     "button",
     {
       type: "button",
@@ -4899,7 +4906,7 @@ function LifeApp() {
       delay: finale ? 0.7 + i * 0.09 + "s" : sweeping && t.done ? S2.todos.filter((x) => x.done).indexOf(t) * 0.07 + "s" : void 0,
       evAmount: !t.done && t.id === (S2.todos.find((x) => !x.done && x.amount) || {}).id
     }
-  ))), allDone && !sweeping && /* @__PURE__ */ import_react7.default.createElement("div", { key: allDoneAt || "static", className: "lf-alldone" + (finale ? " play" : ""), style: { "--delay": finaleAt + "s" } }, /* @__PURE__ */ import_react7.default.createElement("svg", { className: "lf-ad-badge", width: "64", height: "64", viewBox: "0 0 64 64", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("circle", { cx: "32", cy: "32", r: "30", fill: "#DDF2E8" }), /* @__PURE__ */ import_react7.default.createElement("circle", { cx: "32", cy: "32", r: "22", fill: "#1E9E6A" }), /* @__PURE__ */ import_react7.default.createElement("path", { className: "lf-ad-check", d: "M22 32.5l7 7L42.5 25", fill: "none", stroke: "#fff", strokeWidth: "4.5", strokeLinecap: "round", strokeLinejoin: "round", pathLength: "1" })), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-ad-text" }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 17, fontWeight: 600 } }, "全部完成"), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-sub" }, "今天 ", S2.todos.length, " 件事都做完了"))), finale && /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-rain", "aria-hidden": "true" }, rain.map((q, k) => /* @__PURE__ */ import_react7.default.createElement("i", { key: k, style: { left: q.x + "%", background: q.c, width: q.w, height: q.round ? q.w : q.w * 0.42, borderRadius: q.round ? "50%" : 2, "--sx": q.sx + "px", "--r": q.r + "deg", "--dur": q.dur + "s", "--d": finaleAt + q.d + "s" } }))))), /* @__PURE__ */ import_react7.default.createElement("footer", { className: "lf-row", style: { justifyContent: "space-between", marginTop: 18, padding: "0 6px", fontSize: 13, color: "#5E645C", flexWrap: "wrap" } }, /* @__PURE__ */ import_react7.default.createElement("span", null, "数据存在这台电脑上 · ⌘K 随时记一句 · 按住卡片顶部的小横条换位置，拖右下角放大缩小"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 6 } }, customized && /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: resetLayout }, "恢复默认布局"), confirm === "clear" ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row lf-confirm", role: "alert", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { color: "#9B1C20" } }, db.sample ? "清空示例数据" : "删除全部 " + db.records.length + " 条记录", realCount > 0 && db.sample ? "（含你自己记的 " + realCount + " 条）" : "", "，确定吗？"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm(null) }, "取消"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", autoFocus: true, onClick: clearSample, style: { background: "#E5484D", color: "#fff" } }, "确定清空")) : confirm === "sample" ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row lf-confirm", role: "alert", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { color: "#9B1C20" } }, "示例数据会替换掉你现在的 ", db.records.length, " 条记录，确定吗？"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm(null) }, "取消"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", autoFocus: true, onClick: restoreSample, style: { background: "#E5484D", color: "#fff" } }, "确定替换")) : db.sample ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("span", null, "现在是示例数据"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm("clear") }, "清空，开始用")) : /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, db.records.length > 0 && /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm("clear") }, "清空全部记录"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => db.records.length ? setConfirm("sample") : restoreSample() }, "看示例数据")))))), /* @__PURE__ */ import_react7.default.createElement("svg", { "aria-hidden": "true", style: { position: "absolute", left: 0, top: 0, width: geo.w || "100%", height: geo.h || "100%", pointerEvents: "none", zIndex: 5, overflow: "visible" } }, threads && threads.lines.map((l, i) => /* @__PURE__ */ import_react7.default.createElement("g", { key: threads.stamp + l.id }, /* @__PURE__ */ import_react7.default.createElement("path", { d: l.d, className: "lf-thread", stroke: l.color, pathLength: "1", style: { animationDelay: i * 0.05 + "s, " + (1.2 + i * 0.05) + "s" } }), /* @__PURE__ */ import_react7.default.createElement("circle", { r: "5", fill: l.color, opacity: "0" }, /* @__PURE__ */ import_react7.default.createElement("animate", { attributeName: "opacity", values: "0;1;1;0", keyTimes: "0;0.1;0.8;1", dur: "0.9s", begin: i * 0.05 + "s", fill: "freeze" }), /* @__PURE__ */ import_react7.default.createElement("animateMotion", { path: l.d, dur: "0.75s", begin: i * 0.05 + "s", fill: "freeze", keyPoints: "0;1", keyTimes: "0;1", calcMode: "spline", keySplines: "0.4 0 0.2 1" })))), link && /* @__PURE__ */ import_react7.default.createElement("g", { key: link.id }, /* @__PURE__ */ import_react7.default.createElement("defs", null, link.segs.map((g, i) => /* @__PURE__ */ import_react7.default.createElement("linearGradient", { key: i, id: "lfg-" + i, gradientUnits: "userSpaceOnUse", x1: g.a[0], y1: g.a[1], x2: g.z[0], y2: g.z[1] }, /* @__PURE__ */ import_react7.default.createElement("stop", { offset: "0", stopColor: g.c1 }), /* @__PURE__ */ import_react7.default.createElement("stop", { offset: "1", stopColor: g.c2 }))), /* @__PURE__ */ import_react7.default.createElement("marker", { id: "lf-arrow", viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M0 0L10 5L0 10z", fill: link.color })), /* @__PURE__ */ import_react7.default.createElement("filter", { id: "lf-glow", x: "-50%", y: "-50%", width: "200%", height: "200%" }, /* @__PURE__ */ import_react7.default.createElement("feGaussianBlur", { stdDeviation: "3" }))), link.segs.map((g, i) => /* @__PURE__ */ import_react7.default.createElement(
+  ))), allDone && !sweeping && /* @__PURE__ */ import_react7.default.createElement("div", { key: allDoneAt || "static", className: "lf-alldone" + (finale ? " play" : ""), style: { "--delay": finaleAt + "s" } }, /* @__PURE__ */ import_react7.default.createElement("svg", { className: "lf-ad-badge", width: "64", height: "64", viewBox: "0 0 64 64", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("circle", { cx: "32", cy: "32", r: "30", style: { fill: "color-mix(in srgb,#1E9E6A 14%,var(--card))" } }), /* @__PURE__ */ import_react7.default.createElement("circle", { cx: "32", cy: "32", r: "22", fill: "#1E9E6A" }), /* @__PURE__ */ import_react7.default.createElement("path", { className: "lf-ad-check", d: "M22 32.5l7 7L42.5 25", fill: "none", stroke: "#fff", strokeWidth: "4.5", strokeLinecap: "round", strokeLinejoin: "round", pathLength: "1" })), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-ad-text" }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 17, fontWeight: 600 } }, "全部完成"), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-sub" }, "今天 ", S2.todos.length, " 件事都做完了"))), finale && /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-rain", "aria-hidden": "true" }, rain.map((q, k) => /* @__PURE__ */ import_react7.default.createElement("i", { key: k, style: { left: q.x + "%", background: q.c, width: q.w, height: q.round ? q.w : q.w * 0.42, borderRadius: q.round ? "50%" : 2, "--sx": q.sx + "px", "--r": q.r + "deg", "--dur": q.dur + "s", "--d": finaleAt + q.d + "s" } }))))), /* @__PURE__ */ import_react7.default.createElement("footer", { className: "lf-row", style: { justifyContent: "space-between", marginTop: 18, padding: "0 6px", fontSize: 13, color: "var(--ink2)", flexWrap: "wrap" } }, /* @__PURE__ */ import_react7.default.createElement("span", null, "数据存在这台电脑上 · ⌘K 随时记一句 · 按住卡片顶部的小横条换位置，拖右下角放大缩小"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 6 } }, customized && /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: resetLayout }, "恢复默认布局"), confirm === "clear" ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row lf-confirm", role: "alert", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { color: "var(--warn-ink)" } }, db.sample ? "清空示例数据" : "删除全部 " + db.records.length + " 条记录", realCount > 0 && db.sample ? "（含你自己记的 " + realCount + " 条）" : "", "，确定吗？"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm(null) }, "取消"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", autoFocus: true, onClick: clearSample, style: { background: "#E5484D", color: "#fff" } }, "确定清空")) : confirm === "sample" ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row lf-confirm", role: "alert", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { color: "var(--warn-ink)" } }, "示例数据会替换掉你现在的 ", db.records.length, " 条记录，确定吗？"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm(null) }, "取消"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", autoFocus: true, onClick: restoreSample, style: { background: "#E5484D", color: "#fff" } }, "确定替换")) : db.sample ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("span", null, "现在是示例数据"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm("clear") }, "清空，开始用")) : /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, db.records.length > 0 && /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => setConfirm("clear") }, "清空全部记录"), /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-btn", onClick: () => db.records.length ? setConfirm("sample") : restoreSample() }, "看示例数据")))))), /* @__PURE__ */ import_react7.default.createElement("svg", { "aria-hidden": "true", style: { position: "absolute", left: 0, top: 0, width: geo.w || "100%", height: geo.h || "100%", pointerEvents: "none", zIndex: 5, overflow: "visible" } }, threads && threads.lines.map((l, i) => /* @__PURE__ */ import_react7.default.createElement("g", { key: threads.stamp + l.id }, /* @__PURE__ */ import_react7.default.createElement("path", { d: l.d, className: "lf-thread", stroke: l.color, pathLength: "1", style: { animationDelay: i * 0.05 + "s, " + (1.2 + i * 0.05) + "s" } }), /* @__PURE__ */ import_react7.default.createElement("circle", { r: "5", fill: l.color, opacity: "0" }, /* @__PURE__ */ import_react7.default.createElement("animate", { attributeName: "opacity", values: "0;1;1;0", keyTimes: "0;0.1;0.8;1", dur: "0.9s", begin: i * 0.05 + "s", fill: "freeze" }), /* @__PURE__ */ import_react7.default.createElement("animateMotion", { path: l.d, dur: "0.75s", begin: i * 0.05 + "s", fill: "freeze", keyPoints: "0;1", keyTimes: "0;1", calcMode: "spline", keySplines: "0.4 0 0.2 1" })))), link && /* @__PURE__ */ import_react7.default.createElement("g", { key: link.id }, /* @__PURE__ */ import_react7.default.createElement("defs", null, link.segs.map((g, i) => /* @__PURE__ */ import_react7.default.createElement("linearGradient", { key: i, id: "lfg-" + i, gradientUnits: "userSpaceOnUse", x1: g.a[0], y1: g.a[1], x2: g.z[0], y2: g.z[1] }, /* @__PURE__ */ import_react7.default.createElement("stop", { offset: "0", stopColor: g.c1 }), /* @__PURE__ */ import_react7.default.createElement("stop", { offset: "1", stopColor: g.c2 }))), /* @__PURE__ */ import_react7.default.createElement("marker", { id: "lf-arrow", viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M0 0L10 5L0 10z", fill: link.color })), /* @__PURE__ */ import_react7.default.createElement("filter", { id: "lf-glow", x: "-50%", y: "-50%", width: "200%", height: "200%" }, /* @__PURE__ */ import_react7.default.createElement("feGaussianBlur", { stdDeviation: "3" }))), link.segs.map((g, i) => /* @__PURE__ */ import_react7.default.createElement(
     "path",
     {
       key: i,
@@ -4923,7 +4930,7 @@ function TodayList({ S: S2, ghosts, onFill, onRemove }) {
     const m = Math.round(h * 60);
     return String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
   };
-  return /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column" } }, S2.timeline.length === 0 && /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-enter", style: { margin: "2px 0 10px", fontSize: 13.5, lineHeight: 1.6, color: "#5E645C" } }, "今天还没记。按你平时的习惯，先把今天的空位摆出来了，点一个就能补上。"), entries.map((e, i) => {
+  return /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column" } }, S2.timeline.length === 0 && /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-enter", style: { margin: "2px 0 10px", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink2)" } }, "今天还没记。按你平时的习惯，先把今天的空位摆出来了，点一个就能补上。"), entries.map((e, i) => {
     const prev = entries[i - 1];
     if (e.kind === "now") return /* @__PURE__ */ import_react7.default.createElement("div", { key: "now", className: "lf-now", "aria-label": "现在 " + fmtTime(S2.now) }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-now-dot" }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-num" }, "现在 ", fmtTime(S2.now)), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-now-line" }));
     if (e.kind === "ghost") {
@@ -4944,7 +4951,7 @@ function TodayList({ S: S2, ghosts, onFill, onRemove }) {
       );
     }
     const g = e.g;
-    return /* @__PURE__ */ import_react7.default.createElement("div", { key: e.key, className: "lf-tl-item", style: { display: "flex", gap: 14, padding: "12px 0", borderTop: prev && prev.kind === "real" ? "1px solid #ECEEE9" : 0, alignItems: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-num", style: { width: 44, fontSize: 13, color: "#5E645C", paddingTop: 3, flex: "none" } }, fmtTime(g.t)), /* @__PURE__ */ import_react7.default.createElement("div", { style: { flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 15, fontWeight: 500 } }, g.wake ? "醒来" : g.items[0].type === "weight" ? /* @__PURE__ */ import_react7.default.createElement(Private, null, g.items[0].title || labelOf(g.items[0])) : g.items[0].title || labelOf(g.items[0])), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { gap: 6, flexWrap: "wrap" } }, g.items.map((r, j) => /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, { key: r.id }, j > 0 && /* @__PURE__ */ import_react7.default.createElement("span", { style: { color: "#B4B8B0", display: "inline-flex" } }, Icon.arrow), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: DOMAIN[domainOf(r)].soft, color: "#2B2F2A", height: 24 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2[domainOf(r)] } }), r.type === "weight" ? /* @__PURE__ */ import_react7.default.createElement(Private, null, labelOf(r)) : labelOf(r)))))), !g.wake && /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-icon", "aria-label": "删除 " + (g.items[0].title || ""), onClick: () => onRemove(g) }, Icon.x));
+    return /* @__PURE__ */ import_react7.default.createElement("div", { key: e.key, className: "lf-tl-item", style: { display: "flex", gap: 14, padding: "12px 0", borderTop: prev && prev.kind === "real" ? "1px solid var(--rule)" : 0, alignItems: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-num", style: { width: 44, fontSize: 13, color: "var(--ink2)", paddingTop: 3, flex: "none" } }, fmtTime(g.t)), /* @__PURE__ */ import_react7.default.createElement("div", { style: { flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 15, fontWeight: 500 } }, g.wake ? "醒来" : g.items[0].type === "weight" ? /* @__PURE__ */ import_react7.default.createElement(Private, null, g.items[0].title || labelOf(g.items[0])) : g.items[0].title || labelOf(g.items[0])), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { gap: 6, flexWrap: "wrap" } }, g.items.map((r, j) => /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, { key: r.id }, j > 0 && /* @__PURE__ */ import_react7.default.createElement("span", { style: { color: "#B4B8B0", display: "inline-flex" } }, Icon.arrow), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: DOMAIN[domainOf(r)].soft, color: "var(--ink)", height: 24 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2[domainOf(r)] } }), r.type === "weight" ? /* @__PURE__ */ import_react7.default.createElement(Private, null, labelOf(r)) : labelOf(r)))))), !g.wake && /* @__PURE__ */ import_react7.default.createElement("button", { className: "lf-icon", "aria-label": "删除 " + (g.items[0].title || ""), onClick: () => onRemove(g) }, Icon.x));
   }));
 }
 function NextCard({ P: P2, S: S2, onDone }) {
@@ -4953,7 +4960,7 @@ function NextCard({ P: P2, S: S2, onDone }) {
   const isMove = n.domain === "move", toneBg = TONES[eventTone(n)];
   const mins = Math.round((n.t - S2.now) / 6e4);
   const when = mins <= 0 ? "进行中" : mins < 60 ? mins + " 分钟后" : mins < 24 * 60 ? Math.floor(mins / 60) + " 小时 " + mins % 60 + " 分后" : "明天 " + fmtTime(n.t);
-  return /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("next", 3), cls: "s4", bg: toneBg, color: "#fff", style: { display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h", style: { fontWeight: 500, opacity: 0.85, fontSize: 14 } }, "接下来"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: "rgba(255,255,255,.18)" } }, when)), /* @__PURE__ */ import_react7.default.createElement("div", null, /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "next.title", style: { fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, display: "inline-block" } }, n.title), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-num", style: { fontSize: 14, opacity: 0.8, marginTop: 6 } }, fmtTime(n.t), " – ", fmtTime(n.end || n.t + 36e5))), S2.nextAdvice && /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 13.5, lineHeight: 1.5, background: "rgba(255,255,255,.14)", borderRadius: 14, padding: "9px 12px" } }, S2.nextAdvice), isMove && /* @__PURE__ */ import_react7.default.createElement("button", { onClick: () => onDone(n), style: { alignSelf: "flex-start", height: 40, padding: "0 18px", borderRadius: 20, border: 0, background: "#fff", color: C2.move, fontWeight: 600, fontSize: 14 } }, "练完了，记下"));
+  return /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("next", 3), cls: "s4", bg: toneBg, color: "#fff", style: { display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h", style: { fontWeight: 500, opacity: 0.85, fontSize: 14 } }, "接下来"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip", style: { background: "rgba(255,255,255,.18)" } }, when)), /* @__PURE__ */ import_react7.default.createElement("div", null, /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "next.title", style: { fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, display: "inline-block" } }, n.title), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-num", style: { fontSize: 14, opacity: 0.8, marginTop: 6 } }, fmtTime(n.t), " – ", fmtTime(n.end || n.t + 36e5))), S2.nextAdvice && /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 13.5, lineHeight: 1.5, background: "rgba(255,255,255,.14)", borderRadius: 14, padding: "9px 12px" } }, S2.nextAdvice), isMove && /* @__PURE__ */ import_react7.default.createElement("button", { onClick: () => onDone(n), style: { alignSelf: "flex-start", height: 40, padding: "0 18px", borderRadius: 20, border: 0, background: "var(--card)", color: C2.move, fontWeight: 600, fontSize: 14 } }, "练完了，记下"));
 }
 function dustOf(id, n) {
   let h = 0;
@@ -4996,13 +5003,13 @@ function useFlipList(els, order) {
           n.style.zIndex = 2;
           const a = n.animate(down ? [
             { transform: `translateY(${dy}px)`, boxShadow: "0 0 0 rgba(0,0,0,0)", background: "rgba(255,255,255,0)" },
-            { transform: `translate(14px, ${dy * 0.55}px) rotate(1.8deg) scale(1.03)`, boxShadow: "0 14px 28px -12px rgba(31,35,40,.3)", background: "#fff", offset: 0.42 },
-            { transform: "translate(2px, 4px) scale(1.015, .94)", boxShadow: "0 4px 10px -6px rgba(31,35,40,.2)", background: "#fff", offset: 0.78 },
+            { transform: `translate(14px, ${dy * 0.55}px) rotate(1.8deg) scale(1.03)`, boxShadow: "0 14px 28px -12px rgba(31,35,40,.3)", background: "var(--card)", offset: 0.42 },
+            { transform: "translate(2px, 4px) scale(1.015, .94)", boxShadow: "0 4px 10px -6px rgba(31,35,40,.2)", background: "var(--card)", offset: 0.78 },
             { transform: "translateY(-2px) scale(.995, 1.02)", offset: 0.9 },
             { transform: "none", boxShadow: "0 0 0 rgba(0,0,0,0)", background: "rgba(255,255,255,0)" }
           ] : [
             { transform: `translateY(${dy}px)`, background: "rgba(255,255,255,0)" },
-            { transform: `translate(-10px, ${dy * 0.5}px) rotate(-1.5deg) scale(1.03)`, background: "#fff", boxShadow: "0 12px 24px -12px rgba(30,158,106,.35)", offset: 0.45 },
+            { transform: `translate(-10px, ${dy * 0.5}px) rotate(-1.5deg) scale(1.03)`, background: "var(--card)", boxShadow: "0 12px 24px -12px rgba(30,158,106,.35)", offset: 0.45 },
             { transform: "translateY(-5px) scale(1.01)", offset: 0.75 },
             { transform: "none", background: "rgba(255,255,255,0)", boxShadow: "0 0 0 rgba(0,0,0,0)" }
           ], { duration: 640, easing: "cubic-bezier(.3,.7,.35,1)" });
@@ -5050,7 +5057,7 @@ function TodoRow({ arrived = -1, onLanded, rowRef, t, i, onToggle, onEdit, onDel
     return () => clearInterval(iv);
   }, [phase]);
   const left = dying && dying.end ? Math.max(1, Math.ceil((dying.end - Date.now()) / 1e3)) : 0;
-  const base = { borderTop: i ? "1px solid #ECEEE9" : 0, animationDelay: delay };
+  const base = { borderTop: i ? "1px solid var(--rule)" : 0, animationDelay: delay };
   if (phase === "undo" || phase === "gone") {
     return /* @__PURE__ */ import_react7.default.createElement("div", { ref: rowRef, className: "lf-row lf-todo lf-todo-undo" + (phase === "gone" ? " gone" : ""), style: base, role: "status" }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-todo-ghost" }, "已删除 ", /* @__PURE__ */ import_react7.default.createElement("s", null, t.title)), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-sweep-btn pending", onClick: () => onRestore(t), style: { "--dur": "4s" }, "aria-label": "撤销删除，还剩 " + left + " 秒" }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sweep-glow" }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sweep-num" }, /* @__PURE__ */ import_react7.default.createElement("span", { key: left, className: "lf-roll" }, left)), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sweep-label" }, "撤销"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sweep-undo" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M9 14L4 9l5-5" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 9h10a6 6 0 0 1 0 12h-3" })))));
   }
@@ -5085,7 +5092,7 @@ function TodoRow({ arrived = -1, onLanded, rowRef, t, i, onToggle, onEdit, onDel
         "aria-label": "改这件事，末尾写数字就是金额",
         placeholder: "比如：交水电费 180"
       }
-    ), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-todo-hint" }, "回车保存 · Esc 取消")) : /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-todo-hit", onClick: (ev) => !dying && onToggle(t, ev), "aria-pressed": t.done, disabled: !!dustOn }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-check" + (t.done ? " on" : "") }, t.done && /* @__PURE__ */ import_react7.default.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { className: "lf-tick", d: "M5 12.5l4.5 4.5L19 7.5", pathLength: "1" }))), /* @__PURE__ */ import_react7.default.createElement("span", { style: { flex: 1, minWidth: 0, fontSize: 15, color: t.done ? "#8A8F86" : C2.ink, transition: "color .3s" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-strike" }, chars.map((c, k) => /* @__PURE__ */ import_react7.default.createElement("span", { key: k, className: "lf-ch", style: { "--dx": dust[k].x + "px", "--dy": dust[k].y + "px", "--rot": dust[k].rot + "deg", "--s": dust[k].s, "--i": k } }, c))))), t.amount ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip lf-todo-amt", "data-ev": evAmount ? "todos.amount" : void 0, style: { background: t.done ? "#F1F2EE" : DOMAIN.money.soft, color: t.done ? "#8A8F86" : "#4B2FB0", height: 24 } }, money(t.amount)) : null, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-todo-acts" }, /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-todo-act", onClick: startEdit, "aria-label": "改「" + t.title + "」", title: "改一下" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 20h4L19 9l-4-4L4 16v4z" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M13.5 6.5l4 4" }))), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-todo-act del", onClick: () => onDelete(t), "aria-label": "删除「" + t.title + "」", title: "删掉" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M5 7h14" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M10 7V5h4v2" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 7l1 12h8l1-12" })))))
+    ), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-todo-hint" }, "回车保存 · Esc 取消")) : /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-todo-hit", onClick: (ev) => !dying && onToggle(t, ev), "aria-pressed": t.done, disabled: !!dustOn }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-check" + (t.done ? " on" : "") }, t.done && /* @__PURE__ */ import_react7.default.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { className: "lf-tick", d: "M5 12.5l4.5 4.5L19 7.5", pathLength: "1" }))), /* @__PURE__ */ import_react7.default.createElement("span", { style: { flex: 1, minWidth: 0, fontSize: 15, color: t.done ? "var(--ink3)" : C2.ink, transition: "color .3s" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-strike" }, chars.map((c, k) => /* @__PURE__ */ import_react7.default.createElement("span", { key: k, className: "lf-ch", style: { "--dx": dust[k].x + "px", "--dy": dust[k].y + "px", "--rot": dust[k].rot + "deg", "--s": dust[k].s, "--i": k } }, c))))), t.amount ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-chip lf-todo-amt", "data-ev": evAmount ? "todos.amount" : void 0, style: { background: t.done ? "var(--fill)" : DOMAIN.money.soft, color: t.done ? "var(--ink3)" : "var(--money-ink)", height: 24 } }, money(t.amount)) : null, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-todo-acts" }, /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-todo-act", onClick: startEdit, "aria-label": "改「" + t.title + "」", title: "改一下" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 20h4L19 9l-4-4L4 16v4z" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M13.5 6.5l4 4" }))), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-todo-act del", onClick: () => onDelete(t), "aria-label": "删除「" + t.title + "」", title: "删掉" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M5 7h14" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M10 7V5h4v2" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 7l1 12h8l1-12" })))))
   );
 }
 function BackTodos({ records, today, onRestore }) {
@@ -5104,7 +5111,7 @@ function BackTodos({ records, today, onRestore }) {
     setBack((b) => ({ ...b, [t.id]: true }));
     setTimeout(() => onRestore(t), 520);
   };
-  return /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-back" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "做完收起来的"), /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 12, color: "#8A8F86" } }, list.length ? "共 " + list.length + " 件 · " : "", "点空白处翻回去")), list.length === 0 ? /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-sub", style: { margin: "8px 0" } }, "还没有收起来的事。清掉已完成的、或者前一天做完的，都会到这里。") : /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-archive lf-inner-scroll" }, groups.map((g) => /* @__PURE__ */ import_react7.default.createElement("div", { key: g.label, className: "lf-archive-group" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-archive-day" }, g.label), g.items.map((t, i) => /* @__PURE__ */ import_react7.default.createElement("div", { key: t.id, className: "lf-archive-item" + (back[t.id] ? " out" : ""), style: { animationDelay: Math.min(i, 8) * 0.04 + "s" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-archive-tick" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3.5", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M5 12.5l4.5 4.5L19 7.5" }))), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-archive-title" }, t.title), t.amount ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-archive-amt" }, money(t.amount)) : null, /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-archive-back", onClick: () => putBack(t), title: "放回「要做的事」，重新变成没做完" }, "放回去")))))));
+  return /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-back" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "做完收起来的"), /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 12, color: "var(--ink3)" } }, list.length ? "共 " + list.length + " 件 · " : "", "点空白处翻回去")), list.length === 0 ? /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-sub", style: { margin: "8px 0" } }, "还没有收起来的事。清掉已完成的、或者前一天做完的，都会到这里。") : /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-archive lf-inner-scroll" }, groups.map((g) => /* @__PURE__ */ import_react7.default.createElement("div", { key: g.label, className: "lf-archive-group" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-archive-day" }, g.label), g.items.map((t, i) => /* @__PURE__ */ import_react7.default.createElement("div", { key: t.id, className: "lf-archive-item" + (back[t.id] ? " out" : ""), style: { animationDelay: Math.min(i, 8) * 0.04 + "s" } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-archive-tick" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3.5", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M5 12.5l4.5 4.5L19 7.5" }))), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-archive-title" }, t.title), t.amount ? /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-archive-amt" }, money(t.amount)) : null, /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-archive-back", onClick: () => putBack(t), title: "放回「要做的事」，重新变成没做完" }, "放回去")))))));
 }
 function TodayNudges({ part, S: S2, ghosts, usual, focused, onPick, onInsight, pinned }) {
   const slots = ghosts.slice().sort((a, b) => a.h - b.h).slice(0, 3);
@@ -5146,7 +5153,7 @@ function EnergyTaste({ S: S2, pour }) {
   const t = useTaste(ref, S2);
   const cap = Math.max(GOALS.kcal + S2.burned, S2.kcalIn) * 1.05;
   const pct = (v) => v / cap * 100 + "%";
-  return /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("div", { ref, style: { position: "relative" } }, /* @__PURE__ */ import_react7.default.createElement(LiquidBar, { eaten: S2.kcalIn, goal: GOALS.kcal, burned: S2.burned, cap, meals: S2.meals, preview: t && t.mode === "taste" ? t.k : null, pour }), t && t.mode === "taste" && t.more > 0 && /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-taste-tip", style: { left: `clamp(20px, ${pct(t.k)}, calc(100% - 20px))`, color: t.left < 0 ? "#C8373C" : void 0 } }, "+", num(t.more))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginTop: 12, fontSize: 13, color: "#5E645C", minHeight: 18 } }, !t ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", "data-ev": "energy.eaten", style: { gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2.food } }), "吃了 ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.kcalIn })), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2.move } }), "练掉 ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.burned }))) : t.mode === "meal" ? /* @__PURE__ */ import_react7.default.createElement("span", { key: "meal", className: "lf-swap lf-tab", style: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, t.meal ? fmtTime(t.meal.t) + " " + (MEAL_NAME[t.meal.meal] || "") + " · " + t.meal.title + " · " + num(t.meal.kcal) + " 千卡" : "今天还没吃东西") : /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-swap lf-tab", key: "t1" }, "要是再吃 ", /* @__PURE__ */ import_react7.default.createElement("b", { style: { color: "#C26A1E" } }, num(t.more)), " 千卡"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-swap lf-tab", key: "t2", style: { color: t.left < 0 ? C2.link : void 0 } }, t.left < 0 ? "会超出 " + num(-t.left) : "还剩 " + num(t.left)))));
+  return /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("div", { ref, style: { position: "relative" } }, /* @__PURE__ */ import_react7.default.createElement(LiquidBar, { eaten: S2.kcalIn, goal: GOALS.kcal, burned: S2.burned, cap, meals: S2.meals, preview: t && t.mode === "taste" ? t.k : null, pour }), t && t.mode === "taste" && t.more > 0 && /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-taste-tip", style: { left: `clamp(20px, ${pct(t.k)}, calc(100% - 20px))`, color: t.left < 0 ? "#C8373C" : void 0 } }, "+", num(t.more))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginTop: 12, fontSize: 13, color: "var(--ink2)", minHeight: 18 } }, !t ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", "data-ev": "energy.eaten", style: { gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2.food } }), "吃了 ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.kcalIn })), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 6 } }, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-dot", style: { background: C2.move } }), "练掉 ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.burned }))) : t.mode === "meal" ? /* @__PURE__ */ import_react7.default.createElement("span", { key: "meal", className: "lf-swap lf-tab", style: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, t.meal ? fmtTime(t.meal.t) + " " + (MEAL_NAME[t.meal.meal] || "") + " · " + t.meal.title + " · " + num(t.meal.kcal) + " 千卡" : "今天还没吃东西") : /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-swap lf-tab", key: "t1" }, "要是再吃 ", /* @__PURE__ */ import_react7.default.createElement("b", { style: { color: "var(--food-ink)" } }, num(t.more)), " 千卡"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-swap lf-tab", key: "t2", style: { color: t.left < 0 ? C2.link : void 0 } }, t.left < 0 ? "会超出 " + num(-t.left) : "还剩 " + num(t.left)))));
 }
 function SleepBody({ S: S2 }) {
   const ref = (0, import_react7.useRef)(null);
@@ -5166,7 +5173,7 @@ function WeightLine({ weights, now }) {
   const y = (k) => H2 - 6 - (k - min) / (max - min || 1) * (H2 - 12);
   const d = pts.map((p, i) => (i ? "L" : "M") + x(p.t).toFixed(1) + " " + y(p.kg).toFixed(1)).join(" ");
   const last = pts[pts.length - 1];
-  return /* @__PURE__ */ import_react7.default.createElement("svg", { viewBox: `0 0 ${W2} ${H2}`, width: "100%", height: "100%", preserveAspectRatio: "none", style: { display: "block" }, role: "img", "aria-label": "30 天体重从 " + pts[0].kg + " 到 " + last.kg }, /* @__PURE__ */ import_react7.default.createElement("path", { d: d + ` L${x(last.t)} ${H2} L4 ${H2} Z`, fill: "#D9F0EF" }), /* @__PURE__ */ import_react7.default.createElement("path", { d, fill: "none", stroke: C2.body, strokeWidth: "2.2", strokeLinejoin: "round", strokeLinecap: "round", vectorEffect: "non-scaling-stroke", className: "lf-fadein" }));
+  return /* @__PURE__ */ import_react7.default.createElement("svg", { viewBox: `0 0 ${W2} ${H2}`, width: "100%", height: "100%", preserveAspectRatio: "none", style: { display: "block" }, role: "img", "aria-label": "30 天体重从 " + pts[0].kg + " 到 " + last.kg }, /* @__PURE__ */ import_react7.default.createElement("path", { d: d + ` L${x(last.t)} ${H2} L4 ${H2} Z`, style: { fill: "color-mix(in srgb,#0E8A8A 16%,var(--card))" } }), /* @__PURE__ */ import_react7.default.createElement("path", { d, fill: "none", stroke: C2.body, strokeWidth: "2.2", strokeLinejoin: "round", strokeLinecap: "round", vectorEffect: "non-scaling-stroke", className: "lf-fadein" }));
 }
 function WeekBoard({ S: S2 }) {
   const nextMove = S2.events.find((e) => e.domain === "move" && !e.done && e.t > S2.now);
@@ -5178,9 +5185,9 @@ function WeekBoard({ S: S2 }) {
     days.push({ day, evs, clash: new Set(clash.map((c) => c.id)), label: i === 0 ? "今天" : i === 1 ? "明天" : "周" + "日一二三四五六"[new Date(day).getDay()], date: new Date(day).getDate() });
   }
   const clashDay = days.find((d) => d.clash.size);
-  return /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 14 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "接下来七天"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub", style: { color: clashDay ? "#9B1C20" : void 0 } }, clashDay ? clashDay.label + " 有两个安排撞了" : "没有冲突")), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(7, minmax(0,1fr))", gap: 8 } }, days.map((d, i) => /* @__PURE__ */ import_react7.default.createElement("div", { key: d.day, style: { display: "flex", flexDirection: "column", gap: 6, minWidth: 0 } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { gap: 6, height: 40, borderRadius: 14, justifyContent: "center", background: i === 0 ? "#1F2328" : "#F1F2EE", color: i === 0 ? "#fff" : C2.ink, fontSize: 13 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { opacity: 0.75 } }, d.label), /* @__PURE__ */ import_react7.default.createElement("b", { className: "lf-num" }, d.date)), d.evs.length === 0 && /* @__PURE__ */ import_react7.default.createElement("span", { style: { height: 44, borderRadius: 12, border: "1.5px dashed #DADDD6" } }), d.evs.map((e) => {
+  return /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 14 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "接下来七天"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub", style: { color: clashDay ? "var(--warn-ink)" : void 0 } }, clashDay ? clashDay.label + " 有两个安排撞了" : "没有冲突")), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(7, minmax(0,1fr))", gap: 8 } }, days.map((d, i) => /* @__PURE__ */ import_react7.default.createElement("div", { key: d.day, style: { display: "flex", flexDirection: "column", gap: 6, minWidth: 0 } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { gap: 6, height: 40, borderRadius: 14, justifyContent: "center", background: i === 0 ? "var(--ink)" : "var(--fill)", color: i === 0 ? "var(--card)" : C2.ink, fontSize: 13 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { opacity: 0.75 } }, d.label), /* @__PURE__ */ import_react7.default.createElement("b", { className: "lf-num" }, d.date)), d.evs.length === 0 && /* @__PURE__ */ import_react7.default.createElement("span", { style: { height: 44, borderRadius: 12, border: "1.5px dashed var(--line)" } }), d.evs.map((e) => {
     const clash = d.clash.has(e.id), move = e.domain === "move", tc = TONES[eventTone(e)];
-    return /* @__PURE__ */ import_react7.default.createElement("div", { key: e.id, "data-ev": nextMove && e.id === nextMove.id ? "week.move" : void 0, style: { borderRadius: 12, padding: "7px 9px", minWidth: 0, background: clash ? "#FDE4E4" : move ? e.done ? "#DDF2E8" : C2.move : e.t < S2.now ? "#F1F2EE" : tc, color: clash ? "#9B1C20" : move ? e.done ? "#157A51" : "#fff" : e.t < S2.now ? "#8A8F86" : "#fff", boxShadow: clash ? "inset 0 0 0 1.5px #E5484D" : "none" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-num", style: { fontSize: 11, opacity: 0.8 } }, fmtTime(e.t), e.done ? " · 已完成" : ""), /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 12.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, e.title));
+    return /* @__PURE__ */ import_react7.default.createElement("div", { key: e.id, "data-ev": nextMove && e.id === nextMove.id ? "week.move" : void 0, style: { borderRadius: 12, padding: "7px 9px", minWidth: 0, background: clash ? "color-mix(in srgb,#E5484D 13%,var(--card))" : move ? e.done ? "color-mix(in srgb,#1E9E6A 14%,var(--card))" : C2.move : e.t < S2.now ? "var(--fill)" : tc, color: clash ? "var(--warn-ink)" : move ? e.done ? "var(--move-ink)" : "#fff" : e.t < S2.now ? "var(--ink3)" : "#fff", boxShadow: clash ? "inset 0 0 0 1.5px #E5484D" : "none" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-num", style: { fontSize: 11, opacity: 0.8 } }, fmtTime(e.t), e.done ? " · 已完成" : ""), /* @__PURE__ */ import_react7.default.createElement("div", { style: { fontSize: 12.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, e.title));
   })))));
 }
 function domainOf(r) {
@@ -5257,7 +5264,7 @@ function DialIcon(props) {
 // src/plugin.jsx
 var PANEL = "rigui";
 function LifePanel() {
-  return /* @__PURE__ */ import_react9.default.createElement("div", { style: { flex: "auto", width: "100%", minWidth: 0, height: "100%", minHeight: 0, overflowX: "hidden", overflowY: "auto", overscrollBehavior: "contain", background: "#E8EAE5" } }, /* @__PURE__ */ import_react9.default.createElement(LifeApp, null));
+  return /* @__PURE__ */ import_react9.default.createElement("div", { className: "lf-host", style: { flex: "auto", width: "100%", minWidth: 0, height: "100%", minHeight: 0, overflowX: "hidden", overflowY: "auto", overscrollBehavior: "contain", background: "#E8EAE5" } }, /* @__PURE__ */ import_react9.default.createElement(LifeApp, null));
 }
 var isPlugin = true;
 var inject = ["slots"];

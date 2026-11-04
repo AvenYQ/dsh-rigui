@@ -6,7 +6,7 @@ const PANEL = 'rigui'
 
 function LifePanel() {
   return (
-    <div style={{ flex: 'auto', width: '100%', minWidth: 0, height: '100%', minHeight: 0, overflowX: 'hidden', overflowY: 'auto', overscrollBehavior: 'contain', background: '#E8EAE5' }}>
+    <div className="lf-host" style={{ flex: 'auto', width: '100%', minWidth: 0, height: '100%', minHeight: 0, overflowX: 'hidden', overflowY: 'auto', overscrollBehavior: 'contain', background: '#E8EAE5' }}>
       <LifeApp />
     </div>
   )

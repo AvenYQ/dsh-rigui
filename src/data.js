@@ -1,12 +1,12 @@
 // 数据层：记录、解析、派生和关联规则。界面只读这里算出来的东西。
 
 export const DOMAIN = {
-  sleep: { name: '睡眠', color: '#3D4FB8', soft: '#E3E6F8' },
-  move: { name: '运动', color: '#1E9E6A', soft: '#DDF2E8' },
-  food: { name: '饮食', color: '#F2994A', soft: '#FDEBDA' },
-  money: { name: '花销', color: '#7C5CE0', soft: '#ECE6FB' },
-  time: { name: '日程', color: '#1F2328', soft: '#E9EAE6' },
-  body: { name: '身体', color: '#0E8A8A', soft: '#D9F0EF' },
+  sleep: { name: '睡眠', color: '#3D4FB8', soft: 'color-mix(in srgb,#3D4FB8 15%,var(--card))' },
+  move: { name: '运动', color: '#1E9E6A', soft: 'color-mix(in srgb,#1E9E6A 15%,var(--card))' },
+  food: { name: '饮食', color: '#F2994A', soft: 'color-mix(in srgb,#F2994A 15%,var(--card))' },
+  money: { name: '花销', color: '#7C5CE0', soft: 'color-mix(in srgb,#7C5CE0 15%,var(--card))' },
+  time: { name: '日程', color: '#1F2328', soft: 'var(--fill)' },
+  body: { name: '身体', color: '#0E8A8A', soft: 'color-mix(in srgb,#0E8A8A 15%,var(--card))' },
 }
 
 export const DEFAULT_GOALS = { kcal: 1800, budget: 7000, sleep: 7.5, workoutsPerWeek: 4, weight: null }

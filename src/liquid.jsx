@@ -88,12 +88,13 @@ export function LiquidBar({ eaten, goal, burned, cap, meals, preview, pour }) {
       // ---- 画 ----
       ctx.clearRect(0, 0, w, H)
       ctx.save(); tube(w); ctx.clip()
-      ctx.fillStyle = '#F1F2EE'; ctx.fillRect(0, 0, w, H)
-      ctx.fillStyle = '#E6E8E2'; ctx.fillRect(0, 0, xg, H)
+      const dk = document.body.hasAttribute('data-ds-dark-theme')
+      ctx.fillStyle = dk ? '#25282C' : '#F1F2EE'; ctx.fillRect(0, 0, w, H)
+      ctx.fillStyle = dk ? '#2E3136' : '#E6E8E2'; ctx.fillRect(0, 0, xg, H)
       if (L.burned > 0) {  // 练出来的额度：绿色斜纹
         ctx.save(); ctx.beginPath(); ctx.rect(xg, 0, xb - xg, H); ctx.clip()
-        ctx.fillStyle = '#DDF2E8'; ctx.fillRect(xg, 0, xb - xg, H)
-        ctx.strokeStyle = '#BFE6D3'; ctx.lineWidth = 3
+        ctx.fillStyle = dk ? '#1C3A2E' : '#DDF2E8'; ctx.fillRect(xg, 0, xb - xg, H)
+        ctx.strokeStyle = dk ? '#24503D' : '#BFE6D3'; ctx.lineWidth = 3
         for (let x = xg - H; x < xb + H; x += 8) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke() }
         ctx.restore()
       }
@@ -133,7 +134,7 @@ export function LiquidBar({ eaten, goal, burned, cap, meals, preview, pour }) {
       ctx.beginPath(); ctx.roundRect ? ctx.roundRect(6, PAD_T + 2.5, w - 12, 2.5, 1.25) : ctx.rect(6, PAD_T + 2.5, w - 12, 2.5); ctx.fill()
       ctx.restore()
       // 目标线
-      ctx.fillStyle = '#1F2328'; ctx.fillRect(Math.round(xb) - 1, 1, 2, H - 2)
+      ctx.fillStyle = dk ? '#E8E9E5' : '#1F2328'; ctx.fillRect(Math.round(xb) - 1, 1, 2, H - 2)
 
       const busy = !reduce && visible && (L.preview != null || B.length > 0 || Math.abs(s.ve) + Math.abs(s.vp) > 0.02 || Math.abs(xe - s.fe) > 0.3 || true)
       if (busy) raf = requestAnimationFrame(frame)
