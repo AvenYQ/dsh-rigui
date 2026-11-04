@@ -1,6 +1,6 @@
 {
   "name": "dsh-rigui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "日晷 (Rigui) — a playful personal life workbench for DeepSeek Harness: sleep, food, workouts, spending and schedule on one page of cards that react to each other",
   "type": "module",
   "main": "index.js",

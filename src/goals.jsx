@@ -301,7 +301,7 @@ export function GoalsButton({ goals, suggestions, onClick }) {
   const done = LAYERS.filter((L) => suggestions.some((s) => s.layer === L.key && adopted[s.id])).length
   const items = suggestions.filter((s) => adopted[s.id]).length
   return (
-    <button className={'gl-entry' + (done === 0 ? ' fresh' : '')} onClick={onClick} aria-label={'我的目标，采纳 ' + items + ' 项，点亮 ' + done + ' 层'}>
+    <button type="button" className={'gl-entry' + (done === 0 ? ' fresh' : '')} data-tip={done === 0 ? '定个目标' : '目标 ' + items + ' 项 · 点亮 ' + done + '/6 层'} onClick={onClick} aria-label={'我的目标，采纳 ' + items + ' 项，点亮 ' + done + ' 层'}>
       <svg width="22" height="22" viewBox="0 0 36 36" aria-hidden="true">
         {LAYERS.slice(0, 5).reverse().map((L, i) => {
           const on = suggestions.some((s) => s.layer === L.key && adopted[s.id])

@@ -12,6 +12,19 @@ export const DOMAIN = {
 export const DEFAULT_GOALS = { kcal: 1800, budget: 7000, sleep: 7.5, workoutsPerWeek: 4, weight: null }
 export const GOALS = { ...DEFAULT_GOALS }
 export function setGoals(g) { Object.assign(GOALS, DEFAULT_GOALS, g || {}) }
+// 天气（外部数据），给「关系」用
+export const WEATHER = { w: null }
+export function setWeather(w) { WEATHER.w = w || null }
+// 日程的颜色：开会靛蓝、学习紫、运动绿、其它墨色（顶部大卡片、接下来、这周都用这一套）
+export const TONES = { meet: '#3D4FB8', study: '#7C5CE0', move: '#1E9E6A', time: '#1F2328' }
+export function eventTone(e) {
+  if (!e) return null
+  if (e.domain === 'move') return 'move'
+  const t = e.title || ''
+  if (/学习|读书|看书|上课|课程|复习|背单词|练琴|写作|自习|网课|作业|考试/.test(t)) return 'study'
+  if (/会|评审|讨论|面试|沟通|电话|汇报|对齐|同步|复盘|拜访|访谈/.test(t)) return 'meet'
+  return 'time'
+}
 
 const DAY = 86400000
 export const startOfDay = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime() }
@@ -318,6 +331,7 @@ export function derive(records, now = Date.now()) {
   const events = records.filter((r) => r.type === 'event').sort((a, b) => a.t - b.t)
   const todayEvents = events.filter((e) => inDay(e, today))
   const next = events.find((e) => (e.end || e.t) > now && !e.done && e.t < today + 2 * DAY) || null
+  const nowEvent = events.find((e) => e.t <= now && (e.end || e.t + 3600000) > now && !e.done) || null
   // 已归档的不显示；前几天就做完的，第二天自动收起来
   const todos = records.filter((r) => r.type === 'todo' && !r.archived && !(r.done && r.doneAt && r.doneAt < today)).sort((a, b) => a.done - b.done || (a.done ? (b.doneAt || 0) - (a.doneAt || 0) : a.t - b.t))   // 刚做完的排在已完成的最前面，紧挨着没做完的
 
@@ -338,7 +352,7 @@ export function derive(records, now = Date.now()) {
 
   const S = {
     now, today, meals, workouts, kcalIn, burned, allowance, spent, todaySpent, remaining, perDay, pace, daysLeft, dayOfMonth, daysInMonth,
-    cats, pendingBills, lastNight, week, sleepAvg, weekWorkouts, weekMinutes, weekKcal, wNow, wDelta, weights, events, todayEvents, next, todos, heat, timeline,
+    nowEvent, cats, pendingBills, lastNight, week, sleepAvg, weekWorkouts, weekMinutes, weekKcal, wNow, wDelta, weights, events, todayEvents, next, todos, heat, timeline,
   }
   S.insights = insights(S, records)
   S.nextAdvice = adviceFor(S)
@@ -351,6 +365,17 @@ const avg = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0)
 function insights(S, records) {
   const list = []
   const h = hourOf(S.now)
+  // 天气 ↔ 运动 / 饮食
+  const w = WEATHER.w
+  if (w) {
+    const outdoor = S.events.find((e) => e.domain === 'move' && !e.done && e.t > S.now && e.t < S.today + DAY && /跑|骑|徒步|爬山|球/.test(e.title))
+    if (outdoor && w.rainSoon) list.push({ id: 'weather-move', from: 'sleep', to: 'move', tone: 'warn', ev: ['week.move', 'next.title'],
+      text: '接下来几小时有雨，' + fmtTime(outdoor.t) + ' 的' + outdoor.title + '可以换成室内练，或者带伞。' })
+    else if (w.temp >= 32) list.push({ id: 'weather-hot', from: 'move', to: 'food', tone: 'warn', ev: ['energy.num', 'move.today'],
+      text: '外面 ' + w.temp + '°，练的时候多补水，强度降一点。' })
+    else if (w.temp <= 3) list.push({ id: 'weather-cold', from: 'move', to: 'food', tone: 'warn', ev: ['move.today', 'energy.num'],
+      text: '外面只有 ' + w.temp + '°，出门练先热身久一点。' })
+  }
   if (S.lastNight && S.lastNight.hours < 6.5) {
     list.push({ id: 'sleep-move', from: 'sleep', to: 'move', tone: 'warn', ev: ['sleep.last', 'next.title'],
       text: '昨晚只睡了 ' + fmtHM(S.lastNight.hours) + '，今天的训练强度降一档，早点睡比多练有用。' })

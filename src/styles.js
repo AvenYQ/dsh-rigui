@@ -9,7 +9,8 @@ export const CSS = `
 .lf-root.lf-scrolling .lf-wrap{pointer-events:none}
 .lf-root *,.lf-root *::before,.lf-root *::after{box-sizing:border-box}
 .lf-root button{font:inherit;color:inherit;cursor:pointer}
-.lf-root :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:8px}
+.lf-root :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.lf-root input:focus,.lf-root textarea:focus,.lf-root input:focus-visible,.lf-root textarea:focus-visible{outline:none}
 .lf-num{font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
 .lf-wrap{max-width:1400px;margin:0 auto;padding:24px 24px 56px}
 .lf-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
@@ -17,7 +18,8 @@ export const CSS = `
   transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;--c:var(--ink);box-shadow:var(--lift,0 0 #0000)}
 .lf-card.lf-hov{transition:opacity .25s;z-index:4;will-change:transform}
 .lf-sheen{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;opacity:var(--sheen,0);
-  background:radial-gradient(circle at var(--mx,50%) var(--my,0%),var(--sheen-c,color-mix(in srgb,var(--c) 10%,transparent)),transparent 62%)}
+  background:radial-gradient(circle 260px at var(--mx,50%) var(--my,0%),var(--sheen-c,color-mix(in srgb,var(--c) 10%,transparent)),transparent 100%)}
+[data-card=hero]>.lf-sheen{background:radial-gradient(circle 180px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.09),transparent 100%);mix-blend-mode:soft-light}
 .lf-card.dim{opacity:.45;transition:opacity .25s}
 .lf-card.armed{box-shadow:0 0 0 2px var(--ground),0 0 0 4px var(--c),var(--lift,0 0 #0000)}
 .lf-card.flash{animation:lf-flash 1.4s cubic-bezier(.2,.8,.2,1)}

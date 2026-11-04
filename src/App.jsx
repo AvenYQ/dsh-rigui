@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect, useContext } from 'react'
-import { DOMAIN, GOALS, setGoals, parse, fromAI, frequent, ghostSlots, derive, seed, effectsOf, completeEvent, todoToExpense, fmtTime, fmtHM, money, num, hourOf, startOfDay, MEAL_NAME, uid } from './data.js'
+import { HeroSky, WeatherBadge, useWeather, WEATHER_CSS } from './weather.jsx'
+import { DOMAIN, GOALS, setGoals, setWeather, eventTone, TONES, parse, fromAI, frequent, ghostSlots, derive, seed, effectsOf, completeEvent, todoToExpense, fmtTime, fmtHM, money, num, hourOf, startOfDay, MEAL_NAME, uid } from './data.js'
 import { CSS, FONT_HREF } from './styles.js'
 import { bindHover } from './hover.js'
 import { LiquidBar } from './liquid.jsx'
@@ -325,7 +326,11 @@ export default function LifeApp() {
   const [goalsOpen, setGoalsOpen] = useState(false)
   useEffect(() => { try { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)) } catch (e) {} }, [goals])
   useMemo(() => { const g = {}; NUM_KEYS.forEach((k) => { if (goals[k] != null) g[k] = goals[k] }); setGoals(g) }, [goals])
-  const S = useMemo(() => derive(db.records, now), [db.records, now, goals])
+  const weatherW = (() => { try { return JSON.parse(localStorage.getItem('dsh-rigui:weather')) } catch (e) { return null } })()
+  const [wTick, setWTick] = useState(0)
+  useEffect(() => { const iv = setInterval(() => setWTick((x) => x + 1), 60000); return () => clearInterval(iv) }, [])
+  useMemo(() => setWeather(weatherW), [wTick, weatherW && weatherW.at])
+  const S = useMemo(() => derive(db.records, now), [db.records, now, goals, weatherW && weatherW.at])
   const suggestions = useMemo(() => suggestGoals(S, db.records), [S, db.records])
   const adoptGoal = (sg, v) => setGoalsState((g) => {
     const n = { ...g, adopted: { ...g.adopted, [sg.id]: true }, texts: { ...g.texts } }
@@ -341,6 +346,13 @@ export default function LifeApp() {
   const openGoals = () => { const r = rootRef.current && rootRef.current.getBoundingClientRect(); setRootRect(r ? { left: r.left, width: r.width } : null); setGoalsOpen(true) }
   const usual = useMemo(() => frequent(db.records, now), [db.records, now])
   const ghosts = useMemo(() => ghostSlots(db.records, now), [db.records, now])
+  const [sayFocus, setSayFocus] = useState(false)
+  // 该记的事不再单独占一行框，直接写进输入框的提示里
+  const sayHint = (() => {
+    const nowH = (now - S.today) / 3600000
+    const due = ghosts.filter((g) => g.h <= nowH).sort((a, b) => b.h - a.h)[0]
+    return due ? due.title.replace(/[？?]$/, '') + '？说一句就记下' : '吃了什么、花了多少、练了多久，说一句就记下'
+  })()
   // 点空位：把平时那句话填进输入框
   const fillFrom = (phrase) => {
     setText(phrase)
@@ -768,6 +780,12 @@ export default function LifeApp() {
   const shownInsight = focusInsight || pinned
   const [link, setLink] = useState(null)
   useEffect(() => { const k = (e) => { if (e.key === 'Escape') setPinned(null) }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k) }, [])
+  // 钉住后点任何别的地方都取消（点提示条/关系条目本身由它们自己的 onClick 切换）
+  useEffect(() => {
+    if (!pinned) return
+    const k = (e) => { if (!(e.target.closest && e.target.closest('.lf-tip, .lf-insight'))) setPinned(null) }
+    document.addEventListener('pointerdown', k, true); return () => document.removeEventListener('pointerdown', k, true)
+  }, [pinned])
   useLayoutEffect(() => {
     const root = rootRef.current, it = shownInsight
     document.querySelectorAll('.lf-ev-on').forEach((n) => { n.classList.remove('lf-ev-on'); n.style.removeProperty('--ev') })
@@ -805,6 +823,9 @@ export default function LifeApp() {
     setLink(segs.length ? { id: it.id + ':' + Date.now(), segs, full: segs.map((g) => g.d).join(' ').replace(/ M/g, ' L'), color: toC } : null)
   }, [shownInsight, geo, layout])
   const hlCards = shownInsight ? new Set(['insights', ...shownInsight.ev.map((k) => { const n = rootRef.current && rootRef.current.querySelector('[data-ev="' + k + '"]'); const c = n && n.closest('[data-card]'); return c ? c.dataset.card : null }).filter(Boolean)]) : null
+  // 天气 + 正在进行的日程 → 顶部大卡片的背景
+  const weather = useWeather()
+  const heroTone = S.nowEvent ? { key: eventTone(S.nowEvent), e: S.nowEvent } : null
   const todoEls = useRef({})
   const todoOrder = useDisplayOrder(S.todos.map((t) => t.id), 520)
   const shownTodos = todoOrder.map((id) => S.todos.find((t) => t.id === id)).filter(Boolean)
@@ -829,20 +850,18 @@ export default function LifeApp() {
 
   return (
     <div className="lf-root" ref={rootRef}>
-      <style>{CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS}</style>
+      <style>{CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS + WEATHER_CSS}</style>
       <LayoutCtx.Provider value={layoutApi}>
       <div className="lf-wrap" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ marginBottom: GAP }}>
 
           {/* 头部：一句话 + 表盘 */}
-          <Card {...P('hero', 0)} cls="s12" bg="#1F2328" color="#F4F5F1" style={{ padding: '32px 36px' }}>
-            <div className="lf-hero">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 26, alignSelf: 'stretch', justifyContent: 'space-between', padding: '4px 0' }}>
+          <Card {...P('hero', 0)} cls="s12" bg="#3B6FA8" color="#F4F5F1" style={{ padding: '32px 36px' }}>
+            <HeroSky w={weather.w} now={now} tone={heroTone} />
+            <WeatherBadge weather={weather} tone={heroTone} now={now} />
+            <div className="lf-hero lf-hero-sky lf-glassy">
+              <div className="lf-hero-left" style={{ display: 'flex', flexDirection: 'column', gap: 44, alignSelf: 'stretch', justifyContent: 'center', padding: '4px 0' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div className="lf-row" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 2 }}>
-                    <span style={{ fontSize: 15, color: 'rgba(244,245,241,.6)' }}>{dateStr}</span>
-                    <GoalsButton goals={goals} suggestions={suggestions} onClick={openGoals} />
-                  </div>
                   <h1 style={{ margin: 0, fontSize: 'clamp(34px, 4.4cqi, 52px)', fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.05 }}>
                     {hello}{editName ? (
                       <>，<input autoFocus className="lf-name-input" defaultValue={userName} maxLength={16} aria-label="怎么称呼你"
@@ -851,21 +870,20 @@ export default function LifeApp() {
                       <button type="button" className="lf-name" onClick={() => setEditName(true)} title={userName ? '改称呼' : '告诉我怎么称呼你'}>{userName ? '，' + userName : <span className="lf-name-add">，怎么称呼你？</span>}</button>
                     )}
                   </h1>
-                  {/* 问候下面只留一句：定了愿景就是愿景，没定就是今天的小结（数字卡片里都有，这里不重复堆） */}
-                  {goals.adopted.vision && goals.texts.vision
-                    ? <span key={goals.texts.vision} className="lf-vision"><i />{goals.texts.vision}</span>
-                    : <p style={{ margin: '10px 0 0', fontSize: 15, lineHeight: 1.6, color: 'rgba(244,245,241,.6)', maxWidth: 520 }}>{storyOf(S)}</p>}
                 </div>
-                <form onSubmit={submit} style={{ position: 'relative' }}>
+                <div className="lf-sayrow">
+                <form onSubmit={submit} className="lf-sayform" style={{ position: 'relative', flex: 1, minWidth: 0 }}>
                   <label htmlFor="lf-say" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>说一句来记录</label>
                   <input id="lf-say" ref={inputRef} className="lf-input" value={text} autoComplete="off" spellCheck={false}
-                    placeholder="吃了什么、花了多少、练了多久，说一句就记下" onChange={(e) => setText(e.target.value)}
+                    placeholder={sayHint} onChange={(e) => setText(e.target.value)} onFocus={() => setSayFocus(true)} onBlur={() => setSayFocus(false)}
                     onCompositionStart={() => { composing.current = true }}
                     onCompositionEnd={() => { composing.current = false; setCompTick((x) => x + 1) }}
                     onKeyDown={(e) => { if (e.key === 'Escape') setText('') }} />
                   <button type="submit" className="lf-send" disabled={!text.trim() || busy} aria-label="记下">{busy ? <span className="lf-spin" /> : Icon.send}</button>
                 </form>
-                <div style={{ minHeight: 150, display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                <GoalsButton goals={goals} suggestions={suggestions} onClick={openGoals} />
+                </div>
+                <div className="lf-below" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 10, minHeight: 100, marginTop: -12 }}>
                   {text.trim() && !settled ? (
                     <span style={{ fontSize: 13, color: 'rgba(244,245,241,.45)', minHeight: 20 }}>说完停一下，我来理解这句话</span>
                   ) : text.trim() ? (
@@ -908,7 +926,16 @@ export default function LifeApp() {
                       )}
                     </div>
                   ) : (
-                    <TodayNudges S={S} ghosts={ghosts} usual={usual} onPick={(u) => { setText(u); inputRef.current && inputRef.current.focus() }} onInsight={(it) => setPinned((p0) => (p0 && p0.id === it.id ? null : it))} pinned={pinned} />
+                    <div className={'lf-idle-stack' + (sayFocus ? ' focus' : '')}>
+                      {/* 平时：愿景或今日小结 + 关系提示；点进输入框就退场，让位给建议 */}
+                      <div className="lf-idle">
+                        {goals.adopted.vision && goals.texts.vision
+                          ? <span key={goals.texts.vision} className="lf-vision"><i />{goals.texts.vision}</span>
+                          : <p className="lf-story">{storyOf(S)}</p>}
+                        <TodayNudges part="tip" S={S} ghosts={ghosts} usual={usual} focused={sayFocus} onPick={() => {}} onInsight={(it) => setPinned((p0) => (p0 && p0.id === it.id ? null : it))} pinned={pinned} />
+                      </div>
+                      <TodayNudges part="sugs" S={S} ghosts={ghosts} usual={usual} focused={sayFocus} onPick={(u) => { setText(u); inputRef.current && inputRef.current.focus() }} onInsight={(it) => setPinned((p0) => (p0 && p0.id === it.id ? null : it))} pinned={pinned} />
+                    </div>
                   )}
                 </div>
               </div>
@@ -980,7 +1007,7 @@ export default function LifeApp() {
           <Card {...P('insights', 7)} cls="s4">
             <div className="lf-row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
               <h2 className="lf-h">它们之间的关系</h2>
-              <span className="lf-sub">{pinned ? '已钉住 · 再点一次或按 Esc 取消' : '悬停看因果，点一下钉住'}</span>
+              <span className="lf-sub">{pinned ? '已钉住 · 点别处或按 Esc 取消' : '悬停看因果，点一下钉住'}</span>
             </div>
             {S.insights.length === 0 ? <p className="lf-sub" style={{ margin: '12px 0' }}>多记几天，这里会找出睡眠、吃饭、花钱之间的规律。</p> : (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1239,11 +1266,11 @@ function NextCard({ P, S, onDone }) {
       <span className="lf-sub">说「明天 19:30 跑步」加一项。</span>
     </Card>
   )
-  const isMove = n.domain === 'move'
+  const isMove = n.domain === 'move', toneBg = TONES[eventTone(n)]
   const mins = Math.round((n.t - S.now) / 60000)
   const when = mins <= 0 ? '进行中' : mins < 60 ? mins + ' 分钟后' : mins < 24 * 60 ? Math.floor(mins / 60) + ' 小时 ' + (mins % 60) + ' 分后' : '明天 ' + fmtTime(n.t)
   return (
-    <Card {...P('next', 3)} cls="s4" bg={isMove ? C.move : '#1F2328'} color="#fff" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14 }}>
+    <Card {...P('next', 3)} cls="s4" bg={toneBg} color="#fff" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14 }}>
       <div className="lf-row" style={{ justifyContent: 'space-between' }}>
         <h2 className="lf-h" style={{ fontWeight: 500, opacity: 0.85, fontSize: 14 }}>接下来</h2>
         <span className="lf-chip" style={{ background: 'rgba(255,255,255,.18)' }}>{when}</span>
@@ -1438,7 +1465,7 @@ function BackTodos({ records, today, onRestore }) {
   )
 }
 
-function TodayNudges({ S, ghosts, usual, onPick, onInsight, pinned }) {
+function TodayNudges({ part, S, ghosts, usual, focused, onPick, onInsight, pinned }) {
   const slots = ghosts.slice().sort((a, b) => a.h - b.h).slice(0, 3)
   const tips = S.insights.slice(0, 4)
   const [ti, setTi] = useState(0)
@@ -1447,36 +1474,29 @@ function TodayNudges({ S, ghosts, usual, onPick, onInsight, pinned }) {
   const tip = tips.length ? tips[ti % tips.length] : null
   const nowH = (S.now - S.today) / 3600000
   const fmtH = (h) => String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0')
+  const tone = (d) => (C[d] && C[d] !== '#1F2328' ? C[d] : '#F4F5F1')
+  // 点进输入框才出现：该记的和常记的，都是输入的“下拉建议”，平时不占地方
+  const sugs = [
+    ...slots.map((g) => ({ key: 'g' + g.key, text: g.title.replace('吃了什么', ''), sub: g.h <= nowH ? '该记了' : fmtH(g.h), due: g.h <= nowH, phrase: g.phrase, c: tone(g.domain) })),
+    ...usual.slice(0, 4).map((u) => ({ key: 'u' + u, text: u, phrase: u })),
+  ]
+  const keep = (e) => e.preventDefault()
   return (
-    <div className="lf-nudges">
-      {slots.length > 0 && (
-        <div className="lf-nudge-row">
-          <span className="lf-nudge-label">接下来</span>
-          {slots.map((g, i) => {
-            const due = g.h <= nowH
-            return (
-              <button key={g.key} type="button" className={'lf-nudge' + (due ? ' due' : '')} style={{ '--c': C[DOMAIN[g.domain] ? g.domain : 'time'] === '#1F2328' ? '#F4F5F1' : C[g.domain], animationDelay: i * 0.07 + 's' }}
-                onClick={() => onPick(g.phrase)} title={g.hint}>
-                <span className="lf-nudge-dot" />
-                <span>{g.title.replace('吃了什么', '')}</span>
-                <span className="lf-nudge-time">{due ? '该记了' : fmtH(g.h)}</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
-      {tip && (
+    <div className={'lf-nudges' + (focused ? ' focus' : '')}>
+      {part === 'sugs' && <div className={'lf-sugs' + (focused && sugs.length ? ' on' : '')} aria-hidden={!focused}>
+        {sugs.map((g, i) => (
+          <button key={g.key} type="button" tabIndex={focused ? 0 : -1} className={'lf-sug' + (g.due ? ' due' : '')} style={{ '--c': g.c || 'rgba(244,245,241,.5)', transitionDelay: (focused ? i * 0.03 : 0) + 's' }}
+            onMouseDown={keep} onClick={() => onPick(g.phrase)}>
+            {g.c && <span className="lf-sug-dot" />}{g.text}{g.sub && <em>{g.sub}</em>}
+          </button>
+        ))}
+      </div>}
+      {part === 'tip' && tip && (
         <button type="button" className={'lf-tip' + (pinned && pinned.id === tip.id ? ' on' : '')} onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onClick={() => onInsight(tip)} title="点一下，在下面的卡片上看它们怎么连起来">
-          <span className="lf-tip-dots"><i style={{ background: C[tip.from] === '#1F2328' ? '#F4F5F1' : C[tip.from] }} /><b /><i style={{ background: C[tip.to] === '#1F2328' ? '#F4F5F1' : C[tip.to] }} /></span>
+          <span className="lf-tip-dots"><i style={{ background: tone(tip.from) }} /><b /><i style={{ background: tone(tip.to) }} /></span>
           <span className="lf-tip-win"><span key={tip.id + ti} className="lf-tip-text">{tip.text}</span></span>
           {tips.length > 1 && <span className="lf-tip-pager">{tips.map((_, k) => <i key={k} className={k === ti % tips.length ? 'on' : ''} />)}</span>}
         </button>
-      )}
-      {usual.length > 0 && (
-        <div className="lf-nudge-row lf-usual">
-          <span className="lf-nudge-label">常记</span>
-          {usual.slice(0, 4).map((u) => <button key={u} type="button" className="lf-nudge plain" onClick={() => onPick(u)}>{u}</button>)}
-        </div>
       )}
     </div>
   )
@@ -1597,9 +1617,9 @@ function WeekBoard({ S }) {
             </div>
             {d.evs.length === 0 && <span style={{ height: 44, borderRadius: 12, border: '1.5px dashed #DADDD6' }} />}
             {d.evs.map((e) => {
-              const clash = d.clash.has(e.id), move = e.domain === 'move'
+              const clash = d.clash.has(e.id), move = e.domain === 'move', tc = TONES[eventTone(e)]
               return (
-                <div key={e.id} data-ev={nextMove && e.id === nextMove.id ? 'week.move' : undefined} style={{ borderRadius: 12, padding: '7px 9px', minWidth: 0, background: clash ? '#FDE4E4' : move ? (e.done ? '#DDF2E8' : C.move) : e.t < S.now ? '#F1F2EE' : '#1F2328', color: clash ? '#9B1C20' : move ? (e.done ? '#157A51' : '#fff') : e.t < S.now ? '#8A8F86' : '#fff', boxShadow: clash ? 'inset 0 0 0 1.5px #E5484D' : 'none' }}>
+                <div key={e.id} data-ev={nextMove && e.id === nextMove.id ? 'week.move' : undefined} style={{ borderRadius: 12, padding: '7px 9px', minWidth: 0, background: clash ? '#FDE4E4' : move ? (e.done ? '#DDF2E8' : C.move) : e.t < S.now ? '#F1F2EE' : tc, color: clash ? '#9B1C20' : move ? (e.done ? '#157A51' : '#fff') : e.t < S.now ? '#8A8F86' : '#fff', boxShadow: clash ? 'inset 0 0 0 1.5px #E5484D' : 'none' }}>
                   <div className="lf-num" style={{ fontSize: 11, opacity: 0.8 }}>{fmtTime(e.t)}{e.done ? ' · 已完成' : ''}</div>
                   <div style={{ fontSize: 12.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.title}</div>
                 </div>
