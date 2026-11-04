@@ -1,0 +1,55 @@
+{
+  "name": "dsh-rigui",
+  "version": "0.1.0",
+  "description": "日晷 (Rigui) — a playful personal life workbench for DeepSeek Harness: sleep, food, workouts, spending and schedule on one page of cards that react to each other",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "life",
+    "dashboard",
+    "health",
+    "finance",
+    "habit",
+    "workbench"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AvenYQ/dsh-rigui.git"
+  },
+  "homepage": "https://github.com/AvenYQ/dsh-rigui#readme",
+  "author": "AvenYQ",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  }
+}

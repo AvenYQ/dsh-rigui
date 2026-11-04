@@ -1,0 +1,4 @@
+# 日晷：DSH 左侧边栏的一行入口 + 主区域的生活工作台
+- insert:
+    - id: rigui
+      name: dsh-rigui
