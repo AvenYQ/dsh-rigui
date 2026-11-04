@@ -43,8 +43,8 @@ async function api(endpoint, payload) {
 }
 const OM = 'https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=7'
 async function fetchForecast(lat, lon) {
-  try { return await api('weather', { lat, lon }) } catch (e) {}
-  const r = await fetch(`${OM}&latitude=${lat}&longitude=${lon}`); return r.json()      // 主机还没重启时，直接请求
+  try { const d = await api('weather', { lat, lon }); if (d && d.daily && d.daily.time && d.daily.time.length >= 7) return d } catch (e) {}
+  const r = await fetch(`${OM}&latitude=${lat}&longitude=${lon}`); return r.json()      // 主机没重启（还是旧接口、只给两天）时，直接请求
 }
 async function geocode(name) {
   try { return await api('geo', { name }) } catch (e) {}
@@ -58,7 +58,7 @@ export function useWeather() {
   const load = async (c, force) => {
     if (!c) return
     const cached = ls.get(CACHE)
-    if (!force && cached && cached.days && cached.city === c.name && Date.now() - cached.at < 30 * 60000) { setW(cached); return }
+    if (!force && cached && cached.days && cached.days.length >= 7 && cached.city === c.name && Date.now() - cached.at < 30 * 60000) { setW(cached); return }
     try {
       const d = await fetchForecast(c.lat, c.lon)
       const cur = d.current, nowIso = cur.time
@@ -202,7 +202,9 @@ export function WIcon({ code, night, size = 18 }) {
 }
 
 // 右上角：气温、天气、最高最低、接下来几小时；进行中的日程时换成日程信息
-export function WeatherBadge({ weather, tone, now, onFlip, flipped }) {
+export function WeatherBadge({ weather, tone, now }) {
+  const flipped = useWxFlip()
+  const onFlip = (e) => { e.stopPropagation(); setWxFlip((x) => !x) }
   const { w, city, setCity, err } = weather
   const [edit, setEdit] = useState(false)
   if (tone) {
@@ -234,6 +236,32 @@ export function WeatherBadge({ weather, tone, now, onFlip, flipped }) {
       <button type="button" className="lf-wb-hit lf-wb-city" onClick={onFlip}>{w.city}</button>
       <button type="button" className="lf-wb-hit lf-wb-temp" onClick={onFlip}>{w.temp}°</button>
       <button type="button" className="lf-wb-hit lf-wb-sub" onClick={onFlip}>最高 {w.hi}°  最低 {w.lo}°</button>
+    </div>
+  )
+}
+
+// 翻面状态放在一个小 store 里：只让角标和表盘重绘，不牵动整个工作台（之前整页重渲染，翻转一开始会卡一下）
+const flip = { on: false, subs: new Set() }
+export function setWxFlip(v) { const n = typeof v === 'function' ? v(flip.on) : v; if (n === flip.on) return; flip.on = n; flip.subs.forEach((f) => f()) }
+export function useWxFlip() {
+  const [, force] = useState(0)
+  useEffect(() => { const f = () => force((x) => x + 1); flip.subs.add(f); return () => flip.subs.delete(f) }, [])
+  return flip.on
+}
+export function DialFlip({ front, back, dialRef }) {
+  const on = useWxFlip()
+  useEffect(() => {
+    if (!on) return
+    const k = (e) => { if (e.target.closest && (e.target.closest('.lf-wb-hit') || e.target.closest('.lf-wb-mini') || e.target.closest('.lf-wk-head form'))) return; setWxFlip(false) }
+    const esc = (e) => { if (e.key === 'Escape') setWxFlip(false) }
+    const t = setTimeout(() => document.addEventListener('click', k), 0)
+    window.addEventListener('keydown', esc)
+    return () => { clearTimeout(t); document.removeEventListener('click', k); window.removeEventListener('keydown', esc) }
+  }, [on])
+  return (
+    <div ref={dialRef} data-ev="dial" className={'lf-dialflip' + (on ? ' on' : '')}>
+      <div className="lf-face front" aria-hidden={on}>{front}</div>
+      <div className="lf-face back" aria-hidden={!on}>{back}</div>
     </div>
   )
 }
@@ -385,15 +413,15 @@ export const WEATHER_CSS = `
 .lf-root .lf-wb-mini{border:0;background:transparent;padding:0;font:inherit;cursor:pointer}
 /* 仪表盘翻面 */
 .lf-dialflip{display:grid;perspective:1400px}
-.lf-dialflip>.lf-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .75s cubic-bezier(.3,1.25,.4,1),visibility 0s linear .3s}
+.lf-dialflip>.lf-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform;transform:translateZ(0);transition:transform .6s cubic-bezier(.25,1.15,.4,1),visibility 0s linear .25s}
 .lf-dialflip>.lf-face.back,.lf-dialflip.on>.lf-face.front{visibility:hidden}
 .lf-dialflip.on>.lf-face.back{visibility:visible}
 .lf-wbadge.compact.flipped{animation:none;opacity:0;transform:translateY(-4px);pointer-events:none}
-.lf-dialflip>.lf-face.back{transform:rotateY(-180deg);display:grid;align-items:center;justify-items:center}
-.lf-dialflip.on>.lf-face.front{transform:rotateY(180deg);pointer-events:none}
-.lf-dialflip.on>.lf-face.back{transform:rotateY(0)}
+.lf-dialflip>.lf-face.back{transform:rotateY(-180deg) translateZ(0);display:grid;align-items:center;justify-items:center}
+.lf-dialflip.on>.lf-face.front{transform:rotateY(180deg) translateZ(0);pointer-events:none}
+.lf-dialflip.on>.lf-face.back{transform:rotateY(0) translateZ(0)}
 .lf-dialflip:not(.on)>.lf-face.back{pointer-events:none}
-.lf-wk{width:min(400px,100%);padding:18px 20px 14px;border-radius:30px;color:#fff;background:rgba(255,255,255,.13);-webkit-backdrop-filter:blur(22px) saturate(1.1);backdrop-filter:blur(22px) saturate(1.1);
+.lf-wk{width:min(400px,100%);padding:18px 20px 14px;border-radius:30px;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.1));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08),0 20px 50px -24px rgba(0,0,0,.45);cursor:pointer}
 .lf-wk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.18);font-size:12.5px;color:rgba(255,255,255,.75);letter-spacing:.02em}
 .lf-root .lf-wk-city{border:0;background:transparent;padding:0;color:rgba(255,255,255,.75);font:inherit;font-size:12.5px;cursor:pointer}

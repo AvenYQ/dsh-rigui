@@ -98,7 +98,8 @@ async function api(endpoint, payload) {
 var OM = "https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=7";
 async function fetchForecast(lat, lon) {
   try {
-    return await api("weather", { lat, lon });
+    const d = await api("weather", { lat, lon });
+    if (d && d.daily && d.daily.time && d.daily.time.length >= 7) return d;
   } catch (e) {
   }
   const r = await fetch(`${OM}&latitude=${lat}&longitude=${lon}`);
@@ -122,7 +123,7 @@ function useWeather() {
   const load2 = async (c, force) => {
     if (!c) return;
     const cached = ls.get(CACHE);
-    if (!force && cached && cached.days && cached.city === c.name && Date.now() - cached.at < 30 * 6e4) {
+    if (!force && cached && cached.days && cached.days.length >= 7 && cached.city === c.name && Date.now() - cached.at < 30 * 6e4) {
       setW(cached);
       return;
     }
@@ -372,7 +373,12 @@ function WIcon({ code, night, size = 18 }) {
   const k = kindOf(code);
   return /* @__PURE__ */ import_react.default.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", "aria-hidden": "true", className: "lf-wi k-" + k }, k === "clear" ? ICON.clear(night) : k === "partly" ? /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("g", { opacity: ".9", transform: "translate(-3 -3) scale(.8)" }, ICON.clear(night)), /* @__PURE__ */ import_react.default.createElement("g", { transform: "translate(3 3) scale(.85)" }, ICON.cloud())) : /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, ICON.cloud(), (k === "rain" || k === "drizzle" || k === "thunder") && [8, 12, 16].map((x) => /* @__PURE__ */ import_react.default.createElement("line", { key: x, x1: x, y1: "20", x2: x - 1, y2: "23", stroke: "currentColor", strokeWidth: "1.6", strokeLinecap: "round" })), k === "snow" && [8, 12, 16].map((x) => /* @__PURE__ */ import_react.default.createElement("circle", { key: x, cx: x, cy: "21.5", r: "1.2", fill: "currentColor" }))));
 }
-function WeatherBadge({ weather, tone, now, onFlip, flipped }) {
+function WeatherBadge({ weather, tone, now }) {
+  const flipped = useWxFlip();
+  const onFlip = (e) => {
+    e.stopPropagation();
+    setWxFlip((x) => !x);
+  };
   const { w, city, setCity, err } = weather;
   const [edit, setEdit] = (0, import_react.useState)(false);
   if (tone) {
@@ -394,6 +400,43 @@ function WeatherBadge({ weather, tone, now, onFlip, flipped }) {
   if (!w) return /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-wbadge" }, /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-wb-sub" }, err || "正在看天…"));
   const k = kindOf(w.code);
   return /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-wbadge compact" + (flipped ? " flipped" : ""), title: LABEL[k] + " · 点一下看 7 天" }, /* @__PURE__ */ import_react.default.createElement("button", { type: "button", className: "lf-wb-hit lf-wb-city", onClick: onFlip }, w.city), /* @__PURE__ */ import_react.default.createElement("button", { type: "button", className: "lf-wb-hit lf-wb-temp", onClick: onFlip }, w.temp, "°"), /* @__PURE__ */ import_react.default.createElement("button", { type: "button", className: "lf-wb-hit lf-wb-sub", onClick: onFlip }, "最高 ", w.hi, "°  最低 ", w.lo, "°"));
+}
+var flip = { on: false, subs: /* @__PURE__ */ new Set() };
+function setWxFlip(v) {
+  const n = typeof v === "function" ? v(flip.on) : v;
+  if (n === flip.on) return;
+  flip.on = n;
+  flip.subs.forEach((f) => f());
+}
+function useWxFlip() {
+  const [, force] = (0, import_react.useState)(0);
+  (0, import_react.useEffect)(() => {
+    const f = () => force((x) => x + 1);
+    flip.subs.add(f);
+    return () => flip.subs.delete(f);
+  }, []);
+  return flip.on;
+}
+function DialFlip({ front, back, dialRef }) {
+  const on = useWxFlip();
+  (0, import_react.useEffect)(() => {
+    if (!on) return;
+    const k = (e) => {
+      if (e.target.closest && (e.target.closest(".lf-wb-hit") || e.target.closest(".lf-wb-mini") || e.target.closest(".lf-wk-head form"))) return;
+      setWxFlip(false);
+    };
+    const esc = (e) => {
+      if (e.key === "Escape") setWxFlip(false);
+    };
+    const t = setTimeout(() => document.addEventListener("click", k), 0);
+    window.addEventListener("keydown", esc);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("click", k);
+      window.removeEventListener("keydown", esc);
+    };
+  }, [on]);
+  return /* @__PURE__ */ import_react.default.createElement("div", { ref: dialRef, "data-ev": "dial", className: "lf-dialflip" + (on ? " on" : "") }, /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-face front", "aria-hidden": on }, front), /* @__PURE__ */ import_react.default.createElement("div", { className: "lf-face back", "aria-hidden": !on }, back));
 }
 var WD = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 function WeekWeather({ weather }) {
@@ -524,15 +567,15 @@ var WEATHER_CSS = `
 .lf-root .lf-wb-mini{border:0;background:transparent;padding:0;font:inherit;cursor:pointer}
 /* 仪表盘翻面 */
 .lf-dialflip{display:grid;perspective:1400px}
-.lf-dialflip>.lf-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .75s cubic-bezier(.3,1.25,.4,1),visibility 0s linear .3s}
+.lf-dialflip>.lf-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform;transform:translateZ(0);transition:transform .6s cubic-bezier(.25,1.15,.4,1),visibility 0s linear .25s}
 .lf-dialflip>.lf-face.back,.lf-dialflip.on>.lf-face.front{visibility:hidden}
 .lf-dialflip.on>.lf-face.back{visibility:visible}
 .lf-wbadge.compact.flipped{animation:none;opacity:0;transform:translateY(-4px);pointer-events:none}
-.lf-dialflip>.lf-face.back{transform:rotateY(-180deg);display:grid;align-items:center;justify-items:center}
-.lf-dialflip.on>.lf-face.front{transform:rotateY(180deg);pointer-events:none}
-.lf-dialflip.on>.lf-face.back{transform:rotateY(0)}
+.lf-dialflip>.lf-face.back{transform:rotateY(-180deg) translateZ(0);display:grid;align-items:center;justify-items:center}
+.lf-dialflip.on>.lf-face.front{transform:rotateY(180deg) translateZ(0);pointer-events:none}
+.lf-dialflip.on>.lf-face.back{transform:rotateY(0) translateZ(0)}
 .lf-dialflip:not(.on)>.lf-face.back{pointer-events:none}
-.lf-wk{width:min(400px,100%);padding:18px 20px 14px;border-radius:30px;color:#fff;background:rgba(255,255,255,.13);-webkit-backdrop-filter:blur(22px) saturate(1.1);backdrop-filter:blur(22px) saturate(1.1);
+.lf-wk{width:min(400px,100%);padding:18px 20px 14px;border-radius:30px;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.1));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08),0 20px 50px -24px rgba(0,0,0,.45);cursor:pointer}
 .lf-wk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.18);font-size:12.5px;color:rgba(255,255,255,.75);letter-spacing:.02em}
 .lf-root .lf-wk-city{border:0;background:transparent;padding:0;color:rgba(255,255,255,.75);font:inherit;font-size:12.5px;cursor:pointer}
@@ -3507,7 +3550,7 @@ function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdopt, onUn
   const [closing, setClosing] = (0, import_react6.useState)(false);
   const [draft, setDraft] = (0, import_react6.useState)({});
   const [alt, setAlt] = (0, import_react6.useState)({});
-  const [flip, setFlip] = (0, import_react6.useState)({});
+  const [flip2, setFlip] = (0, import_react6.useState)({});
   const [hot, setHot] = (0, import_react6.useState)(null);
   const [lit, setLit] = (0, import_react6.useState)({});
   const [plus, setPlus] = (0, import_react6.useState)([]);
@@ -3657,7 +3700,7 @@ function GoalsPanel({ open, onClose, rootRect, suggestions, goals, onAdopt, onUn
       const why = typeof s.why === "function" ? s.why(v) : s.why;
       return /* @__PURE__ */ import_react6.default.createElement("div", { key: s.id, ref: (n) => {
         cardRefs.current[s.id] = n;
-      }, className: "gl-card" + (done ? " done" : ""), style: { "--c": L.color, animationDelay: 0.25 + i * 0.06 + "s" } }, /* @__PURE__ */ import_react6.default.createElement("div", { key: flip[s.id] || 0, className: flip[s.id] ? "gl-flip" : "" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-card-title" }, s.title), s.num ? /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-num-row" }, /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-step", onClick: () => step(s, -1), "aria-label": "减少" + s.title, disabled: done }, "−"), /* @__PURE__ */ import_react6.default.createElement("span", { key: v, className: "gl-num" }, s.num.fmt ? s.num.fmt(v) : num(v), /* @__PURE__ */ import_react6.default.createElement("small", null, s.num.fmt && s.num.unit === "元" ? "" : " " + s.num.unit)), /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-step", onClick: () => step(s, 1), "aria-label": "增加" + s.title, disabled: done }, "+"), s.after && /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-after" }, s.after(v))) : /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-text" }, v), /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-why" }, why)), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-actions" }, done ? /* @__PURE__ */ import_react6.default.createElement(import_react6.default.Fragment, null, /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-adopted" }, /* @__PURE__ */ import_react6.default.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react6.default.createElement("path", { d: "M5 12.5l4.5 4.5L19 7.5", pathLength: "1", className: "lf-tick" })), "已采纳"), /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-link", onClick: () => onUndo(s) }, "撤回")) : /* @__PURE__ */ import_react6.default.createElement(import_react6.default.Fragment, null, /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-adopt", onClick: () => adopt(s) }, "采纳"), s.texts && s.texts.length > 1 && /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-link", onClick: () => shuffle(s) }, "换一个"))));
+      }, className: "gl-card" + (done ? " done" : ""), style: { "--c": L.color, animationDelay: 0.25 + i * 0.06 + "s" } }, /* @__PURE__ */ import_react6.default.createElement("div", { key: flip2[s.id] || 0, className: flip2[s.id] ? "gl-flip" : "" }, /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-card-title" }, s.title), s.num ? /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-num-row" }, /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-step", onClick: () => step(s, -1), "aria-label": "减少" + s.title, disabled: done }, "−"), /* @__PURE__ */ import_react6.default.createElement("span", { key: v, className: "gl-num" }, s.num.fmt ? s.num.fmt(v) : num(v), /* @__PURE__ */ import_react6.default.createElement("small", null, s.num.fmt && s.num.unit === "元" ? "" : " " + s.num.unit)), /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-step", onClick: () => step(s, 1), "aria-label": "增加" + s.title, disabled: done }, "+"), s.after && /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-after" }, s.after(v))) : /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-text" }, v), /* @__PURE__ */ import_react6.default.createElement("p", { className: "gl-why" }, why)), /* @__PURE__ */ import_react6.default.createElement("div", { className: "gl-actions" }, done ? /* @__PURE__ */ import_react6.default.createElement(import_react6.default.Fragment, null, /* @__PURE__ */ import_react6.default.createElement("span", { className: "gl-adopted" }, /* @__PURE__ */ import_react6.default.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react6.default.createElement("path", { d: "M5 12.5l4.5 4.5L19 7.5", pathLength: "1", className: "lf-tick" })), "已采纳"), /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-link", onClick: () => onUndo(s) }, "撤回")) : /* @__PURE__ */ import_react6.default.createElement(import_react6.default.Fragment, null, /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-adopt", onClick: () => adopt(s) }, "采纳"), s.texts && s.texts.length > 1 && /* @__PURE__ */ import_react6.default.createElement("button", { className: "gl-link", onClick: () => shuffle(s) }, "换一个"))));
     })));
   })))));
 }
@@ -3992,7 +4035,7 @@ var Corner = /* @__PURE__ */ import_react7.default.createElement("svg", { width:
 function Card({ id, cls = "", bg, color, refs, flash, armed, hl, dim, children, idx = 0, style, floats, back }) {
   const [face, setFace] = (0, import_react7.useState)(0);
   const flipping = (0, import_react7.useRef)(false);
-  const flip = () => {
+  const flip2 = () => {
     const n = el.current;
     if (!n || flipping.current) return;
     if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -4016,7 +4059,7 @@ function Card({ id, cls = "", bg, color, refs, flash, armed, hl, dim, children, 
     if (!back) return;
     if (e.target.closest("button,a,input,textarea,select,[role=button],.lf-grip,.lf-resize")) return;
     if (window.getSelection && String(window.getSelection())) return;
-    flip();
+    flip2();
   };
   const el = (0, import_react7.useRef)(null);
   (0, import_react7.useEffect)(() => {
@@ -4065,8 +4108,8 @@ function Card({ id, cls = "", bg, color, refs, flash, armed, hl, dim, children, 
         W2 ? null : style
       )
     },
-    W2 ? /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-widget-body", style }, /* @__PURE__ */ import_react7.default.createElement(FlipCtx.Provider, { value: flip }, face && back ? back : children)) : children,
-    W2 && back && /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-flip", "aria-label": face ? "翻回正面" : "翻到背面，看看怎么算的", title: face ? "翻回去" : "看看怎么算的", onClick: flip }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M20 11a8 8 0 0 0-14.3-4.9L4 8" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 3v5h5" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 13a8 8 0 0 0 14.3 4.9L20 16" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M20 21v-5h-5" }))),
+    W2 ? /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-widget-body", style }, /* @__PURE__ */ import_react7.default.createElement(FlipCtx.Provider, { value: flip2 }, face && back ? back : children)) : children,
+    W2 && back && /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-flip", "aria-label": face ? "翻回正面" : "翻到背面，看看怎么算的", title: face ? "翻回去" : "看看怎么算的", onClick: flip2 }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "13", height: "13", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M20 11a8 8 0 0 0-14.3-4.9L4 8" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 3v5h5" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M4 13a8 8 0 0 0 14.3 4.9L20 16" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M20 21v-5h-5" }))),
     W2 && /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, /* @__PURE__ */ import_react7.default.createElement(
       "button",
       {
@@ -4442,7 +4485,7 @@ function LifeApp() {
   const [allDoneAt, setAllDoneAt] = (0, import_react7.useState)(null);
   const toggleTodo = (t, ev) => {
     if (t.done) setAllDoneAt(null);
-    const flip = (d) => d.records.map((r) => r.id === t.id ? { ...r, done: !r.done, doneAt: r.done ? void 0 : Date.now() } : r);
+    const flip2 = (d) => d.records.map((r) => r.id === t.id ? { ...r, done: !r.done, doneAt: r.done ? void 0 : Date.now() } : r);
     if (!t.done) {
       const box = ev && ev.currentTarget && ev.currentTarget.querySelector(".lf-check");
       const r = box ? box.getBoundingClientRect() : null;
@@ -4453,12 +4496,12 @@ function LifeApp() {
     }
     if (!t.done && t.amount) {
       const ex = todoToExpense(t, Date.now());
-      setDb((d) => ({ ...d, records: flip(d).concat([ex]) }));
+      setDb((d) => ({ ...d, records: flip2(d).concat([ex]) }));
       commit([], /* @__PURE__ */ new Set(["todos", "money", "insights"]));
     } else if (t.done && t.amount) {
-      setDb((d) => ({ ...d, records: flip(d).filter((r) => r.from !== t.id) }));
+      setDb((d) => ({ ...d, records: flip2(d).filter((r) => r.from !== t.id) }));
       commit([], /* @__PURE__ */ new Set(["todos", "money", "insights"]));
-    } else setDb((d) => ({ ...d, records: flip(d) }));
+    } else setDb((d) => ({ ...d, records: flip2(d) }));
   };
   const [confirm, setConfirm] = (0, import_react7.useState)(null);
   const [undo, setUndo] = (0, import_react7.useState)(null);
@@ -4794,8 +4837,8 @@ function LifeApp() {
     const curve = (a, b) => {
       const dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1;
       const bend = Math.min(90, d * 0.22), nx = -dy / d * bend, ny = dx / d * bend;
-      const flip = ny > 0 ? -1 : 1;
-      return `C${a[0] + dx * 0.3 + nx * flip} ${a[1] + dy * 0.3 + ny * flip}, ${a[0] + dx * 0.7 + nx * flip} ${a[1] + dy * 0.7 + ny * flip}, ${b[0]} ${b[1]}`;
+      const flip2 = ny > 0 ? -1 : 1;
+      return `C${a[0] + dx * 0.3 + nx * flip2} ${a[1] + dy * 0.3 + ny * flip2}, ${a[0] + dx * 0.7 + nx * flip2} ${a[1] + dy * 0.7 + ny * flip2}, ${b[0]} ${b[1]}`;
     };
     const sb = box(start), segs = [];
     const fromC = C2[it.from], toC = C2[it.to] === "#1F2328" ? "#7C5CE0" : C2[it.to];
@@ -4821,24 +4864,6 @@ function LifeApp() {
   }).filter(Boolean)]) : null;
   const weather = useWeather();
   const heroTone = S2.nowEvent ? { key: eventTone(S2.nowEvent), e: S2.nowEvent } : null;
-  const [wxFlip, setWxFlip] = (0, import_react7.useState)(false);
-  (0, import_react7.useEffect)(() => {
-    if (!wxFlip) return;
-    const k = (e) => {
-      if (e.target.closest && (e.target.closest(".lf-wb-hit") || e.target.closest(".lf-wb-mini") || e.target.closest(".lf-wk-head form"))) return;
-      setWxFlip(false);
-    };
-    const esc = (e) => {
-      if (e.key === "Escape") setWxFlip(false);
-    };
-    const t = setTimeout(() => document.addEventListener("click", k), 0);
-    window.addEventListener("keydown", esc);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener("click", k);
-      window.removeEventListener("keydown", esc);
-    };
-  }, [wxFlip]);
   const todoEls = (0, import_react7.useRef)({});
   const todoOrder = useDisplayOrder(S2.todos.map((t) => t.id), 520);
   const shownTodos = todoOrder.map((id) => S2.todos.find((t) => t.id === id)).filter(Boolean);
@@ -4879,10 +4904,7 @@ function LifeApp() {
     const d = new Date(S2.now);
     return d.getMonth() + 1 + " 月 " + d.getDate() + " 日，周" + "日一二三四五六"[d.getDay()];
   })();
-  return /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-root", ref: rootRef }, /* @__PURE__ */ import_react7.default.createElement("style", null, CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS + WEATHER_CSS), /* @__PURE__ */ import_react7.default.createElement(LayoutCtx.Provider, { value: layoutApi }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-wrap", style: { position: "relative", zIndex: 1 } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { marginBottom: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("hero", 0), cls: "s12", bg: "#3B6FA8", color: "#F4F5F1", style: { padding: "32px 36px" } }, /* @__PURE__ */ import_react7.default.createElement(HeroSky, { w: weather.w, now, tone: heroTone }), /* @__PURE__ */ import_react7.default.createElement(WeatherBadge, { weather, tone: heroTone, now, flipped: wxFlip, onFlip: (e) => {
-    e.stopPropagation();
-    setWxFlip((x) => !x);
-  } }), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero lf-hero-sky lf-glassy" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero-left", style: { display: "flex", flexDirection: "column", gap: 44, alignSelf: "stretch", justifyContent: "center", padding: "4px 0" } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h1", { style: { margin: 0, fontSize: "clamp(34px, 4.4cqi, 52px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05 } }, hello, editName ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, "，", /* @__PURE__ */ import_react7.default.createElement(
+  return /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-root", ref: rootRef }, /* @__PURE__ */ import_react7.default.createElement("style", null, CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS + WEATHER_CSS), /* @__PURE__ */ import_react7.default.createElement(LayoutCtx.Provider, { value: layoutApi }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-wrap", style: { position: "relative", zIndex: 1 } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { marginBottom: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("hero", 0), cls: "s12", bg: "#3B6FA8", color: "#F4F5F1", style: { padding: "32px 36px" } }, /* @__PURE__ */ import_react7.default.createElement(HeroSky, { w: weather.w, now, tone: heroTone }), /* @__PURE__ */ import_react7.default.createElement(WeatherBadge, { weather, tone: heroTone, now }), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero lf-hero-sky lf-glassy" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-hero-left", style: { display: "flex", flexDirection: "column", gap: 44, alignSelf: "stretch", justifyContent: "center", padding: "4px 0" } }, /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h1", { style: { margin: 0, fontSize: "clamp(34px, 4.4cqi, 52px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05 } }, hello, editName ? /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, "，", /* @__PURE__ */ import_react7.default.createElement(
     "input",
     {
       autoFocus: true,
@@ -4935,9 +4957,9 @@ function LifeApp() {
   }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })), /* @__PURE__ */ import_react7.default.createElement(TodayNudges, { part: "sugs", S: S2, ghosts, usual, focused: sayFocus, onPick: (u) => {
     setText(u);
     inputRef.current && inputRef.current.focus();
-  }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })))), /* @__PURE__ */ import_react7.default.createElement("div", { ref: (el) => {
+  }, onInsight: (it) => setPinned((p0) => p0 && p0.id === it.id ? null : it), pinned })))), /* @__PURE__ */ import_react7.default.createElement(DialFlip, { dialRef: (el) => {
     refs.current.dial = el;
-  }, "data-ev": "dial", className: "lf-dialflip" + (wxFlip ? " on" : "") }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-face front", "aria-hidden": wxFlip }, /* @__PURE__ */ import_react7.default.createElement(Dial, { S: S2, hover, setHover })), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-face back", "aria-hidden": !wxFlip }, /* @__PURE__ */ import_react7.default.createElement(WeekWeather, { weather })))))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-widgets", ref: gridRef, style: { display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridAutoRows: ROW_H + "px", gridAutoFlow: "dense", gap: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("energy", 1), cls: "s4", back: /* @__PURE__ */ import_react7.default.createElement(BackEnergy, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天还能吃"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "目标 ", num(GOALS.kcal), " 千卡")), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 6, margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { key: pulse.shake, "data-ev": "energy.num", className: pulse.shake ? "lf-shake" : "", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.allowance), style: { fontSize: 52, fontWeight: 500, lineHeight: 1, color: S2.allowance < 0 ? C2.link : C2.ink }, className: "lf-num" })), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.allowance < 0 ? "千卡，已超出" : "千卡")), /* @__PURE__ */ import_react7.default.createElement(EnergyTaste, { S: S2, pour: pulse.pour })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("money", 2), cls: "s4", bg: C2.money, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackMoney, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, S2.remaining < 0 ? "这个月已超支" : "这个月还能花"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, opacity: 0.8 } }, "还剩 ", S2.daysLeft, " 天"), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-printbtn" + (printOpen ? " on" : ""), onClick: () => setPrintOpen((v) => !v), "aria-label": printOpen ? "收起小票" : "打印今天的花销小票", title: "打印小票" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 9V3h10v6" }), /* @__PURE__ */ import_react7.default.createElement("rect", { x: "3", y: "9", width: "18", height: "8", rx: "2" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 14h10v7H7z" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M17.5 12h.01" }))))), /* @__PURE__ */ import_react7.default.createElement("div", { style: { margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { "data-ev": "money.num", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.remaining), format: money, style: { fontSize: 52, fontWeight: 500, lineHeight: 1 } }))), /* @__PURE__ */ import_react7.default.createElement(MoneyStrip, { S: S2, coin: pulse.coin })), /* @__PURE__ */ import_react7.default.createElement(NextCard, { P: P2, S: S2, onDone: doneEvent }), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("timeline", 4), cls: "s5 r2", style: { display: "flex", flexDirection: "column" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天记下的"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.timeline.length ? S2.timeline.length + " 件" : "还空着", ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length ? " · " + ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length + " 件没记" : "")), /* @__PURE__ */ import_react7.default.createElement(TodayList, { S: S2, ghosts, onFill: fillFrom, onRemove: removeGroup })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("sleep", 5), cls: "s4", bg: C2.sleep, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackSleep, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement(SleepSky, null), /* @__PURE__ */ import_react7.default.createElement(SleepBody, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("move", 6), cls: "s3", back: /* @__PURE__ */ import_react7.default.createElement(BackMove, { S: S2, workouts: db.records.filter((r) => r.type === "workout" && r.t >= S2.today - 6 * 864e5).sort((a, b) => b.t - a.t) }) }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "这周练了"), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "move.count", style: { display: "flex", alignItems: "baseline", gap: 6, margin: "12px 0 10px", alignSelf: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekWorkouts, style: { fontSize: 44, fontWeight: 500, lineHeight: 1 } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "/ ", GOALS.workoutsPerWeek, " 次 · ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekMinutes }), " 分钟")), /* @__PURE__ */ import_react7.default.createElement(MoveBars, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("insights", 7), cls: "s4" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 6 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "它们之间的关系"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, pinned ? "已钉住 · 点别处或按 Esc 取消" : "悬停看因果，点一下钉住")), S2.insights.length === 0 ? /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-sub", style: { margin: "12px 0" } }, "多记几天，这里会找出睡眠、吃饭、花钱之间的规律。") : /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column" } }, S2.insights.slice(0, 4).map((it, i) => /* @__PURE__ */ import_react7.default.createElement(
+  }, front: /* @__PURE__ */ import_react7.default.createElement(Dial, { S: S2, hover, setHover }), back: /* @__PURE__ */ import_react7.default.createElement(WeekWeather, { weather }) })))), /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-widgets", ref: gridRef, style: { display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridAutoRows: ROW_H + "px", gridAutoFlow: "dense", gap: GAP } }, /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("energy", 1), cls: "s4", back: /* @__PURE__ */ import_react7.default.createElement(BackEnergy, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天还能吃"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "目标 ", num(GOALS.kcal), " 千卡")), /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 6, margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { key: pulse.shake, "data-ev": "energy.num", className: pulse.shake ? "lf-shake" : "", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.allowance), style: { fontSize: 52, fontWeight: 500, lineHeight: 1, color: S2.allowance < 0 ? C2.link : C2.ink }, className: "lf-num" })), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.allowance < 0 ? "千卡，已超出" : "千卡")), /* @__PURE__ */ import_react7.default.createElement(EnergyTaste, { S: S2, pour: pulse.pour })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("money", 2), cls: "s4", bg: C2.money, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackMoney, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, S2.remaining < 0 ? "这个月已超支" : "这个月还能花"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-row", style: { gap: 8 } }, /* @__PURE__ */ import_react7.default.createElement("span", { style: { fontSize: 13, opacity: 0.8 } }, "还剩 ", S2.daysLeft, " 天"), /* @__PURE__ */ import_react7.default.createElement("button", { type: "button", className: "lf-printbtn" + (printOpen ? " on" : ""), onClick: () => setPrintOpen((v) => !v), "aria-label": printOpen ? "收起小票" : "打印今天的花销小票", title: "打印小票" }, /* @__PURE__ */ import_react7.default.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" }, /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 9V3h10v6" }), /* @__PURE__ */ import_react7.default.createElement("rect", { x: "3", y: "9", width: "18", height: "8", rx: "2" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M7 14h10v7H7z" }), /* @__PURE__ */ import_react7.default.createElement("path", { d: "M17.5 12h.01" }))))), /* @__PURE__ */ import_react7.default.createElement("div", { style: { margin: "14px 0 16px" } }, /* @__PURE__ */ import_react7.default.createElement("span", { "data-ev": "money.num", style: { display: "inline-block" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: Math.abs(S2.remaining), format: money, style: { fontSize: 52, fontWeight: 500, lineHeight: 1 } }))), /* @__PURE__ */ import_react7.default.createElement(MoneyStrip, { S: S2, coin: pulse.coin })), /* @__PURE__ */ import_react7.default.createElement(NextCard, { P: P2, S: S2, onDone: doneEvent }), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("timeline", 4), cls: "s5 r2", style: { display: "flex", flexDirection: "column" } }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "今天记下的"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, S2.timeline.length ? S2.timeline.length + " 件" : "还空着", ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length ? " · " + ghosts.filter((g) => S2.today + g.h * 36e5 <= S2.now).length + " 件没记" : "")), /* @__PURE__ */ import_react7.default.createElement(TodayList, { S: S2, ghosts, onFill: fillFrom, onRemove: removeGroup })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("sleep", 5), cls: "s4", bg: C2.sleep, color: "#fff", back: /* @__PURE__ */ import_react7.default.createElement(BackSleep, { S: S2 }) }, /* @__PURE__ */ import_react7.default.createElement(SleepSky, null), /* @__PURE__ */ import_react7.default.createElement(SleepBody, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("move", 6), cls: "s3", back: /* @__PURE__ */ import_react7.default.createElement(BackMove, { S: S2, workouts: db.records.filter((r) => r.type === "workout" && r.t >= S2.today - 6 * 864e5).sort((a, b) => b.t - a.t) }) }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "这周练了"), /* @__PURE__ */ import_react7.default.createElement("div", { "data-ev": "move.count", style: { display: "flex", alignItems: "baseline", gap: 6, margin: "12px 0 10px", alignSelf: "flex-start" } }, /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekWorkouts, style: { fontSize: 44, fontWeight: 500, lineHeight: 1 } }), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, "/ ", GOALS.workoutsPerWeek, " 次 · ", /* @__PURE__ */ import_react7.default.createElement(Num, { value: S2.weekMinutes }), " 分钟")), /* @__PURE__ */ import_react7.default.createElement(MoveBars, { S: S2 })), /* @__PURE__ */ import_react7.default.createElement(Card, { ...P2("insights", 7), cls: "s4" }, /* @__PURE__ */ import_react7.default.createElement("div", { className: "lf-row", style: { justifyContent: "space-between", marginBottom: 6 } }, /* @__PURE__ */ import_react7.default.createElement("h2", { className: "lf-h" }, "它们之间的关系"), /* @__PURE__ */ import_react7.default.createElement("span", { className: "lf-sub" }, pinned ? "已钉住 · 点别处或按 Esc 取消" : "悬停看因果，点一下钉住")), S2.insights.length === 0 ? /* @__PURE__ */ import_react7.default.createElement("p", { className: "lf-sub", style: { margin: "12px 0" } }, "多记几天，这里会找出睡眠、吃饭、花钱之间的规律。") : /* @__PURE__ */ import_react7.default.createElement("div", { style: { display: "flex", flexDirection: "column" } }, S2.insights.slice(0, 4).map((it, i) => /* @__PURE__ */ import_react7.default.createElement(
     "div",
     {
       key: it.id,
