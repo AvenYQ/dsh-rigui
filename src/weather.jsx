@@ -202,9 +202,7 @@ export function WIcon({ code, night, size = 18 }) {
 }
 
 // 右上角：气温、天气、最高最低、接下来几小时；进行中的日程时换成日程信息
-export function WeatherBadge({ weather, tone, now }) {
-  const flipped = useWxFlip()
-  const onFlip = (e) => { e.stopPropagation(); setWxFlip((x) => !x) }
+export function WeatherBadge({ weather, tone, now, onFlip }) {
   const { w, city, setCity, err } = weather
   const [edit, setEdit] = useState(false)
   if (tone) {
@@ -232,7 +230,7 @@ export function WeatherBadge({ weather, tone, now }) {
   if (!w) return <div className="lf-wbadge"><div className="lf-wb-sub">{err || '正在看天…'}</div></div>
   const k = kindOf(w.code)
   return (
-    <div className={'lf-wbadge compact' + (flipped ? ' flipped' : '')} title={LABEL[k] + ' · 点一下看 7 天'}>
+    <div className="lf-wbadge compact" title={LABEL[k] + ' · 点一下看 7 天'}>
       <button type="button" className="lf-wb-hit lf-wb-city" onClick={onFlip}>{w.city}</button>
       <button type="button" className="lf-wb-hit lf-wb-temp" onClick={onFlip}>{w.temp}°</button>
       <button type="button" className="lf-wb-hit lf-wb-sub" onClick={onFlip}>最高 {w.hi}°  最低 {w.lo}°</button>
@@ -240,34 +238,8 @@ export function WeatherBadge({ weather, tone, now }) {
   )
 }
 
-// 翻面状态放在一个小 store 里：只让角标和表盘重绘，不牵动整个工作台（之前整页重渲染，翻转一开始会卡一下）
-const flip = { on: false, subs: new Set() }
-export function setWxFlip(v) { const n = typeof v === 'function' ? v(flip.on) : v; if (n === flip.on) return; flip.on = n; flip.subs.forEach((f) => f()) }
-export function useWxFlip() {
-  const [, force] = useState(0)
-  useEffect(() => { const f = () => force((x) => x + 1); flip.subs.add(f); return () => flip.subs.delete(f) }, [])
-  return flip.on
-}
-export function DialFlip({ front, back, dialRef }) {
-  const on = useWxFlip()
-  useEffect(() => {
-    if (!on) return
-    const k = (e) => { if (e.target.closest && (e.target.closest('.lf-wb-hit') || e.target.closest('.lf-wb-mini') || e.target.closest('.lf-wk-head form'))) return; setWxFlip(false) }
-    const esc = (e) => { if (e.key === 'Escape') setWxFlip(false) }
-    const t = setTimeout(() => document.addEventListener('click', k), 0)
-    window.addEventListener('keydown', esc)
-    return () => { clearTimeout(t); document.removeEventListener('click', k); window.removeEventListener('keydown', esc) }
-  }, [on])
-  return (
-    <div ref={dialRef} data-ev="dial" className={'lf-dialflip' + (on ? ' on' : '')}>
-      <div className="lf-face front" aria-hidden={on}>{front}</div>
-      <div className="lf-face back" aria-hidden={!on}>{back}</div>
-    </div>
-  )
-}
-
 const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-// 仪表盘背面：7 天预报，像 iOS 天气小组件那样一行一天，温度条画在本周最低~最高之间
+// 主卡片背面：7 天预报。卡片很宽，所以一天一列（iOS 大号天气小组件的横排版），温度条竖着画在本周最低~最高之间
 export function WeekWeather({ weather }) {
   const { w, setCity } = weather
   const [edit, setEdit] = useState(false)
@@ -275,30 +247,36 @@ export function WeekWeather({ weather }) {
   const days = w.days.slice(0, 7)
   const mn = Math.min(...days.map((d) => d.lo)), mx = Math.max(...days.map((d) => d.hi)), span = Math.max(1, mx - mn)
   const col = (t) => (t <= 5 ? '#7FC8FF' : t <= 15 ? '#8EE3C8' : t <= 24 ? '#FFD36B' : t <= 30 ? '#FFA94D' : '#FF7A59')
+  const k0 = kindOf(w.code)
   return (
-    <div className="lf-wk" onClick={(e) => { if (edit) e.stopPropagation() }}>
+    <div className="lf-wk">
       <div className="lf-wk-head">
-        <span>7 天预报</span>
-        {edit
-          ? <form onSubmit={(e) => { e.preventDefault(); setCity(e.currentTarget.city.value); setEdit(false) }} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
-              <input name="city" className="lf-wb-input" autoFocus defaultValue={w.city} placeholder="输入城市" aria-label="城市" onBlur={() => setEdit(false)} />
-            </form>
-          : <button type="button" className="lf-wk-city" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setEdit(true) }}>{w.city} · 换城市</button>}
+        <div className="lf-wk-now">
+          {edit
+            ? <form className="lf-wk-edit" onSubmit={(e) => { e.preventDefault(); setCity(e.currentTarget.city.value); setEdit(false) }} onClick={(e) => e.stopPropagation()}>
+                <input name="city" className="lf-wb-input" autoFocus defaultValue={w.city} placeholder="输入城市" aria-label="城市" onBlur={() => setEdit(false)} />
+              </form>
+            : <button type="button" className="lf-wk-city lf-wk-edit" onClick={(e) => { e.stopPropagation(); setEdit(true) }} title="换城市">{w.city}<span>换城市</span></button>}
+          <div className="lf-wk-temp">{w.temp}°</div>
+          <div className="lf-wk-sub"><WIcon code={w.code} night={!w.isDay} size={16} />{LABEL[k0]} · 体感 {w.feels}° · 湿度 {w.hum}%</div>
+        </div>
+        <span className="lf-wk-title">未来 7 天 · 点任意处翻回</span>
       </div>
-      <ul className="lf-wk-list">
+      <ul className="lf-wk-cols">
         {days.map((d, i) => {
-          const dt = new Date(d.date + 'T12:00:00'), k = kindOf(d.code)
+          const dt = new Date(d.date + 'T12:00:00')
           const a = ((d.lo - mn) / span) * 100, b = ((d.hi - mn) / span) * 100
           return (
-            <li key={d.date} style={{ animationDelay: 0.25 + i * 0.045 + 's' }}>
+            <li key={d.date} className={i === 0 ? 'today' : ''} style={{ animationDelay: 0.08 + i * 0.04 + 's' }}>
               <span className="lf-wk-day">{i === 0 ? '今天' : WD[dt.getDay()]}</span>
-              <span className="lf-wk-ic"><WIcon code={d.code} size={20} />{d.pop >= 30 && <em>{d.pop}%</em>}</span>
-              <span className="lf-wk-lo">{d.lo}°</span>
-              <span className="lf-wk-bar" title={LABEL[k]}>
-                <i style={{ left: a + '%', width: Math.max(4, b - a) + '%', background: `linear-gradient(90deg,${col(d.lo)},${col(d.hi)})` }} />
-                {i === 0 && w.temp != null && <b style={{ left: Math.min(100, Math.max(0, ((w.temp - mn) / span) * 100)) + '%' }} />}
+              <span className="lf-wk-ic"><WIcon code={d.code} size={26} /></span>
+              <em className="lf-wk-pop">{d.pop >= 30 ? d.pop + '%' : ''}</em>
+              <b className="lf-wk-hi">{d.hi}°</b>
+              <span className="lf-wk-bar">
+                <i style={{ bottom: a + '%', height: Math.max(6, b - a) + '%', background: `linear-gradient(0deg,${col(d.lo)},${col(d.hi)})` }} />
+                {i === 0 && w.temp != null && <b style={{ bottom: Math.min(100, Math.max(0, ((w.temp - mn) / span) * 100)) + '%' }} />}
               </span>
-              <span className="lf-wk-hi">{d.hi}°</span>
+              <span className="lf-wk-lo">{d.lo}°</span>
             </li>
           )
         })}
@@ -411,34 +389,29 @@ export const WEATHER_CSS = `
 .lf-root .lf-wbadge.compact .lf-wb-temp{font-size:44px;font-weight:300;line-height:1.05;letter-spacing:-.04em}
 .lf-root .lf-wbadge.compact .lf-wb-sub{font-size:12.5px;color:rgba(255,255,255,.85);white-space:pre}
 .lf-root .lf-wb-mini{border:0;background:transparent;padding:0;font:inherit;cursor:pointer}
-/* 仪表盘翻面 */
-.lf-dialflip{display:grid;perspective:1400px}
-.lf-dialflip>.lf-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform;transform:translateZ(0);transition:transform .6s cubic-bezier(.25,1.15,.4,1),visibility 0s linear .25s}
-.lf-dialflip>.lf-face.back,.lf-dialflip.on>.lf-face.front{visibility:hidden}
-.lf-dialflip.on>.lf-face.back{visibility:visible}
-.lf-wbadge.compact.flipped{animation:none;opacity:0;transform:translateY(-4px);pointer-events:none}
-.lf-dialflip>.lf-face.back{transform:rotateY(-180deg) translateZ(0);display:grid;align-items:center;justify-items:center}
-.lf-dialflip.on>.lf-face.front{transform:rotateY(180deg) translateZ(0);pointer-events:none}
-.lf-dialflip.on>.lf-face.back{transform:rotateY(0) translateZ(0)}
-.lf-dialflip:not(.on)>.lf-face.back{pointer-events:none}
-.lf-wk{width:min(400px,100%);padding:18px 20px 14px;border-radius:30px;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.1));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08),0 20px 50px -24px rgba(0,0,0,.45);cursor:pointer}
-.lf-wk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.18);font-size:12.5px;color:rgba(255,255,255,.75);letter-spacing:.02em}
-.lf-root .lf-wk-city{border:0;background:transparent;padding:0;color:rgba(255,255,255,.75);font:inherit;font-size:12.5px;cursor:pointer}
-.lf-root .lf-wk-city:hover{color:#fff}
-.lf-wk-head .lf-wb-input{width:130px;height:28px;font-size:12.5px}
-.lf-wk-list{list-style:none;margin:0;padding:0}
-.lf-wk-list li{display:grid;grid-template-columns:44px 52px 34px 1fr 34px;align-items:center;gap:8px;height:43px;border-bottom:1px solid rgba(255,255,255,.1);font-size:15px;font-variant-numeric:tabular-nums}
-.lf-wk-list li:last-child{border-bottom:0}
-.lf-dialflip.on .lf-wk-list li{animation:lf-wkin .45s cubic-bezier(.2,.8,.2,1) both}
-@keyframes lf-wkin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.lf-wk-day{font-weight:600}
-.lf-wk-ic{display:flex;flex-direction:column;align-items:center;line-height:1}
-.lf-wk-ic em{font-style:normal;font-size:10.5px;font-weight:700;color:#8FD3FF;margin-top:1px}
-.lf-wk-lo{text-align:right;color:rgba(255,255,255,.6)}
-.lf-wk-hi{text-align:left;font-weight:600}
-.lf-wk-bar{position:relative;height:5px;border-radius:3px;background:rgba(0,0,0,.18)}
-.lf-wk-bar i{position:absolute;top:0;bottom:0;border-radius:3px}
-.lf-wk-bar b{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+/* 主卡片背面 */
+.lf-wk{position:relative;z-index:1;display:grid;grid-template-columns:minmax(220px,.8fr) 2.2fr;gap:28px;align-items:stretch;min-height:380px;color:#fff;cursor:pointer}
+.lf-wk-head{display:flex;flex-direction:column;justify-content:space-between;padding:4px 0}
+.lf-wk-now{display:flex;flex-direction:column;align-items:flex-start;gap:4px;animation:lf-swap .45s cubic-bezier(.2,.8,.2,1) both}
+.lf-root .lf-wk-city{display:inline-flex;align-items:baseline;gap:8px;border:0;background:transparent;padding:0;color:#fff;font:inherit;font-size:22px;font-weight:650;cursor:pointer;text-shadow:0 1px 10px rgba(0,0,0,.18)}
+.lf-wk-city span{font-size:12px;font-weight:500;color:rgba(255,255,255,.6);opacity:0;transition:opacity .2s}
+.lf-wk-city:hover span{opacity:1}
+.lf-wk-edit .lf-wb-input{width:160px}
+.lf-wk-temp{font-size:88px;font-weight:250;line-height:1;letter-spacing:-.05em;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(0,0,0,.15)}
+.lf-wk-sub{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:rgba(255,255,255,.85)}
+.lf-wk-title{font-size:12.5px;color:rgba(255,255,255,.6);letter-spacing:.02em}
+.lf-wk-cols{list-style:none;margin:0;padding:18px 14px;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;border-radius:28px;
+  background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08)}
+.lf-wk-cols li{display:grid;grid-template-rows:auto 34px 16px auto 1fr auto;justify-items:center;align-items:center;gap:6px;padding:6px 0;border-radius:18px;font-variant-numeric:tabular-nums;animation:lf-wkin .45s cubic-bezier(.2,.8,.2,1) both}
+.lf-wk-cols li.today{background:rgba(255,255,255,.12)}
+@keyframes lf-wkin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.lf-wk-day{font-size:14px;font-weight:650}
+.lf-wk-pop{font-style:normal;font-size:11.5px;font-weight:700;color:#8FD3FF}
+.lf-wk-hi{font-size:17px;font-weight:650}
+.lf-wk-lo{font-size:15px;color:rgba(255,255,255,.6)}
+.lf-wk-bar{position:relative;width:6px;height:100%;min-height:110px;border-radius:3px;background:rgba(0,0,0,.18)}
+.lf-wk-bar i{position:absolute;left:0;right:0;border-radius:3px}
+.lf-wk-bar b{position:absolute;left:50%;width:11px;height:11px;margin:0 0 -5.5px -5.5px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+@container lf (max-width:680px){.lf-wk{grid-template-columns:1fr}}
 .lf-wk-empty{padding:40px 0;text-align:center;color:rgba(255,255,255,.75)}
 `

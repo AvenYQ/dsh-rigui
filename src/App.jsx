@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect, useContext } from 'react'
-import { HeroSky, WeatherBadge, WeekWeather, DialFlip, useWeather, WEATHER_CSS } from './weather.jsx'
+import { HeroSky, WeatherBadge, WeekWeather, useWeather, WEATHER_CSS } from './weather.jsx'
 import { DOMAIN, GOALS, setGoals, setWeather, eventTone, TONES, parse, fromAI, frequent, ghostSlots, derive, seed, effectsOf, completeEvent, todoToExpense, fmtTime, fmtHM, money, num, hourOf, startOfDay, MEAL_NAME, uid } from './data.js'
 import { CSS, FONT_HREF } from './styles.js'
 import { bindHover } from './hover.js'
@@ -202,7 +202,7 @@ const Grip = <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
 const Corner = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M20 10v10H10" /><path d="M20 20l-7-7" /></svg>
 
 // ---------- 卡片外壳 ----------
-function Card({ id, cls = '', bg, color, refs, flash, armed, hl, dim, children, idx = 0, style, floats, back }) {
+function Card({ id, cls = '', bg, color, refs, flash, armed, hl, dim, children, idx = 0, style, floats, back, flipRef, tapFlip = true }) {
   // 翻面：先转到 90° 侧过去，换内容，再从另一边转回来，最后轻轻回弹
   const [face, setFace] = useState(0)
   const flipping = useRef(false)
@@ -218,8 +218,19 @@ function Card({ id, cls = '', bg, color, refs, flash, armed, hl, dim, children, 
       b.onfinish = () => { flipping.current = false; n.classList.remove('lf-flipping') }
     }
   }
+  const faceRef = useRef(0); faceRef.current = face
+  if (flipRef) flipRef.current = flip
+  // 不靠点卡片翻面的卡（主卡片）：翻到背面后，点页面任何地方都翻回来
+  useEffect(() => {
+    if (tapFlip || !face) return
+    const k = (e) => { if (e.target.closest && e.target.closest('.lf-wk-edit')) return; if (faceRef.current) flip() }
+    const esc = (e) => { if (e.key === 'Escape' && faceRef.current) flip() }
+    const t = setTimeout(() => document.addEventListener('click', k), 0)
+    window.addEventListener('keydown', esc)
+    return () => { clearTimeout(t); document.removeEventListener('click', k); window.removeEventListener('keydown', esc) }
+  }, [face, tapFlip])
   const onCardClick = (e) => {
-    if (!back) return
+    if (!back || !tapFlip) return
     if (e.target.closest('button,a,input,textarea,select,[role=button],.lf-grip,.lf-resize')) return
     if (window.getSelection && String(window.getSelection())) return
     flip()
@@ -251,7 +262,7 @@ function Card({ id, cls = '', bg, color, refs, flash, armed, hl, dim, children, 
       className={['lf-card', back ? 'has-back' : '', entered ? '' : 'lf-enter', W ? 'lf-widget' : cls, armed ? 'armed' : '', hl ? 'hl' : '', dim ? 'dim' : '', clip ? 'clip' : '', dragging ? 'lf-lifted' : ''].join(' ')}
       style={Object.assign({ background: bg, color, '--c': CARD_COLOR[id] || '#1F2328', '--bgc': bg || 'var(--card)', '--sheen-c': color && color !== '#1F2328' ? 'rgba(255,255,255,.2)' : undefined, animationDelay: 0.15 + idx * 0.05 + 's' },
         lay ? { gridColumn: 'span ' + lay.span, gridRow: 'span ' + lay.h, order: lay.order } : null, W ? null : style)}>
-      {W ? <div className="lf-widget-body" style={style}><FlipCtx.Provider value={flip}>{face && back ? back : children}</FlipCtx.Provider></div> : children}
+      {W ? <div className="lf-widget-body" style={style}><FlipCtx.Provider value={flip}>{face && back ? back : children}</FlipCtx.Provider></div> : (face && back ? back : children)}
       {W && back && <button type="button" className="lf-flip" aria-label={face ? '翻回正面' : '翻到背面，看看怎么算的'} title={face ? '翻回去' : '看看怎么算的'} onClick={flip}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8" /><path d="M4 3v5h5" /><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16" /><path d="M20 21v-5h-5" /></svg>
       </button>}
@@ -826,6 +837,7 @@ export default function LifeApp() {
   // 天气 + 正在进行的日程 → 顶部大卡片的背景
   const weather = useWeather()
   const heroTone = S.nowEvent ? { key: eventTone(S.nowEvent), e: S.nowEvent } : null
+  const heroFlip = useRef(null)
   const todoEls = useRef({})
   const todoOrder = useDisplayOrder(S.todos.map((t) => t.id), 520)
   const shownTodos = todoOrder.map((id) => S.todos.find((t) => t.id === id)).filter(Boolean)
@@ -856,9 +868,10 @@ export default function LifeApp() {
         <div style={{ marginBottom: GAP }}>
 
           {/* 头部：一句话 + 表盘 */}
-          <Card {...P('hero', 0)} cls="s12" bg="#3B6FA8" color="#F4F5F1" style={{ padding: '32px 36px' }}>
+          <Card {...P('hero', 0)} cls="s12" bg="#3B6FA8" color="#F4F5F1" style={{ padding: '32px 36px' }} tapFlip={false} flipRef={heroFlip}
+            back={<><HeroSky w={weather.w} now={now} tone={null} /><WeekWeather weather={weather} /></>}>
             <HeroSky w={weather.w} now={now} tone={heroTone} />
-            <WeatherBadge weather={weather} tone={heroTone} now={now} />
+            <WeatherBadge weather={weather} tone={heroTone} now={now} onFlip={(e) => { e.stopPropagation(); heroFlip.current && heroFlip.current() }} />
             <div className="lf-hero lf-hero-sky lf-glassy">
               <div className="lf-hero-left" style={{ display: 'flex', flexDirection: 'column', gap: 44, alignSelf: 'stretch', justifyContent: 'center', padding: '4px 0' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -939,7 +952,9 @@ export default function LifeApp() {
                   )}
                 </div>
               </div>
-              <DialFlip dialRef={(el) => { refs.current.dial = el }} front={<Dial S={S} hover={hover} setHover={setHover} />} back={<WeekWeather weather={weather} />} />
+              <div ref={(el) => { refs.current.dial = el }} data-ev="dial" style={{ display: 'grid' }}>
+                <Dial S={S} hover={hover} setHover={setHover} />
+              </div>
             </div>
           </Card>
         </div>
