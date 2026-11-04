@@ -105,7 +105,7 @@ export function apply(ctx) {
           const p = body.payload || {}
           const url = body.endpoint === 'geo'
             ? 'https://geocoding-api.open-meteo.com/v1/search?count=1&language=zh&name=' + encodeURIComponent(String(p.name || '').slice(0, 40))
-            : 'https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=2&latitude=' + Number(p.lat) + '&longitude=' + Number(p.lon)
+            : 'https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=7&latitude=' + Number(p.lat) + '&longitude=' + Number(p.lon)
           const r = await fetch(url, { signal: AbortSignal.timeout(8000) })
           if (!r.ok) throw new Error('天气服务 ' + r.status)
           return json({ ok: true, result: await r.json() })

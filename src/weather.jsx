@@ -41,7 +41,7 @@ async function api(endpoint, payload) {
   const r = await fetch('api/rigui', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ endpoint, payload }) })
   const j = await r.json(); if (!j.ok) throw new Error(j.error || 'failed'); return j.result
 }
-const OM = 'https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=2'
+const OM = 'https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=7'
 async function fetchForecast(lat, lon) {
   try { return await api('weather', { lat, lon }) } catch (e) {}
   const r = await fetch(`${OM}&latitude=${lat}&longitude=${lon}`); return r.json()      // 主机还没重启时，直接请求
@@ -58,7 +58,7 @@ export function useWeather() {
   const load = async (c, force) => {
     if (!c) return
     const cached = ls.get(CACHE)
-    if (!force && cached && cached.city === c.name && Date.now() - cached.at < 30 * 60000) { setW(cached); return }
+    if (!force && cached && cached.days && cached.city === c.name && Date.now() - cached.at < 30 * 60000) { setW(cached); return }
     try {
       const d = await fetchForecast(c.lat, c.lon)
       const cur = d.current, nowIso = cur.time
@@ -67,6 +67,7 @@ export function useWeather() {
         city: c.name, at: Date.now(), temp: Math.round(cur.temperature_2m), feels: Math.round(cur.apparent_temperature), code: cur.weather_code, isDay: !!cur.is_day,
         hum: cur.relative_humidity_2m, wind: cur.wind_speed_10m, hi: Math.round(d.daily.temperature_2m_max[0]), lo: Math.round(d.daily.temperature_2m_min[0]),
         sunrise: d.daily.sunrise[0], sunset: d.daily.sunset[0],
+        days: (d.daily.time || []).map((t, k) => ({ date: t, code: d.daily.weather_code ? d.daily.weather_code[k] : cur.weather_code, hi: Math.round(d.daily.temperature_2m_max[k]), lo: Math.round(d.daily.temperature_2m_min[k]), pop: d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[k] : null })),
         hourly: d.hourly.time.slice(i0 + 1, i0 + 6).map((t, k) => ({ h: +t.slice(11, 13), temp: Math.round(d.hourly.temperature_2m[i0 + 1 + k]), code: d.hourly.weather_code[i0 + 1 + k] })),
         rainSoon: d.hourly.weather_code.slice(i0, i0 + 6).some((x) => kindOf(x) === 'rain' || kindOf(x) === 'thunder' || kindOf(x) === 'drizzle'),
       }
@@ -201,7 +202,7 @@ export function WIcon({ code, night, size = 18 }) {
 }
 
 // 右上角：气温、天气、最高最低、接下来几小时；进行中的日程时换成日程信息
-export function WeatherBadge({ weather, tone, now }) {
+export function WeatherBadge({ weather, tone, now, onFlip, flipped }) {
   const { w, city, setCity, err } = weather
   const [edit, setEdit] = useState(false)
   if (tone) {
@@ -212,7 +213,7 @@ export function WeatherBadge({ weather, tone, now }) {
         <div className="lf-wb-event">{e.title}</div>
         <div className="lf-wb-sub">还剩 {left >= 60 ? Math.floor(left / 60) + ' 小时 ' + (left % 60) + ' 分' : left + ' 分钟'}</div>
         <span className="lf-wb-bar"><i style={{ width: p * 100 + '%' }} /></span>
-        {w && <div className="lf-wb-mini"><WIcon code={w.code} night={!w.isDay} size={14} />{w.temp}° {LABEL[kindOf(w.code)]}</div>}
+        {w && <button type="button" className="lf-wb-mini" onClick={onFlip} title="看 7 天预报"><WIcon code={w.code} night={!w.isDay} size={14} />{w.temp}° {LABEL[kindOf(w.code)]}</button>}
       </div>
     )
   }
@@ -229,13 +230,51 @@ export function WeatherBadge({ weather, tone, now }) {
   if (!w) return <div className="lf-wbadge"><div className="lf-wb-sub">{err || '正在看天…'}</div></div>
   const k = kindOf(w.code)
   return (
-    <div className="lf-wbadge">
-      <button type="button" className="lf-wb-city" onClick={() => setEdit(true)} title="换城市">{w.city}</button>
-      <div className="lf-wb-temp">{w.temp}°</div>
-      <div className="lf-wb-sub"><WIcon code={w.code} night={!w.isDay} size={15} />{LABEL[k]} · 最高 {w.hi}° 最低 {w.lo}°</div>
-      <div className="lf-wb-hours">
-        {w.hourly.map((h) => <span key={h.h}><em>{h.h}时</em><WIcon code={h.code} night={h.h < 6 || h.h >= 18} size={16} /><b>{h.temp}°</b></span>)}
+    <div className={'lf-wbadge compact' + (flipped ? ' flipped' : '')} title={LABEL[k] + ' · 点一下看 7 天'}>
+      <button type="button" className="lf-wb-hit lf-wb-city" onClick={onFlip}>{w.city}</button>
+      <button type="button" className="lf-wb-hit lf-wb-temp" onClick={onFlip}>{w.temp}°</button>
+      <button type="button" className="lf-wb-hit lf-wb-sub" onClick={onFlip}>最高 {w.hi}°  最低 {w.lo}°</button>
+    </div>
+  )
+}
+
+const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+// 仪表盘背面：7 天预报，像 iOS 天气小组件那样一行一天，温度条画在本周最低~最高之间
+export function WeekWeather({ weather }) {
+  const { w, setCity } = weather
+  const [edit, setEdit] = useState(false)
+  if (!w || !w.days) return <div className="lf-wk"><div className="lf-wk-empty">{weather.err || '正在看天…'}</div></div>
+  const days = w.days.slice(0, 7)
+  const mn = Math.min(...days.map((d) => d.lo)), mx = Math.max(...days.map((d) => d.hi)), span = Math.max(1, mx - mn)
+  const col = (t) => (t <= 5 ? '#7FC8FF' : t <= 15 ? '#8EE3C8' : t <= 24 ? '#FFD36B' : t <= 30 ? '#FFA94D' : '#FF7A59')
+  return (
+    <div className="lf-wk" onClick={(e) => { if (edit) e.stopPropagation() }}>
+      <div className="lf-wk-head">
+        <span>7 天预报</span>
+        {edit
+          ? <form onSubmit={(e) => { e.preventDefault(); setCity(e.currentTarget.city.value); setEdit(false) }} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+              <input name="city" className="lf-wb-input" autoFocus defaultValue={w.city} placeholder="输入城市" aria-label="城市" onBlur={() => setEdit(false)} />
+            </form>
+          : <button type="button" className="lf-wk-city" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setEdit(true) }}>{w.city} · 换城市</button>}
       </div>
+      <ul className="lf-wk-list">
+        {days.map((d, i) => {
+          const dt = new Date(d.date + 'T12:00:00'), k = kindOf(d.code)
+          const a = ((d.lo - mn) / span) * 100, b = ((d.hi - mn) / span) * 100
+          return (
+            <li key={d.date} style={{ animationDelay: 0.25 + i * 0.045 + 's' }}>
+              <span className="lf-wk-day">{i === 0 ? '今天' : WD[dt.getDay()]}</span>
+              <span className="lf-wk-ic"><WIcon code={d.code} size={20} />{d.pop >= 30 && <em>{d.pop}%</em>}</span>
+              <span className="lf-wk-lo">{d.lo}°</span>
+              <span className="lf-wk-bar" title={LABEL[k]}>
+                <i style={{ left: a + '%', width: Math.max(4, b - a) + '%', background: `linear-gradient(90deg,${col(d.lo)},${col(d.hi)})` }} />
+                {i === 0 && w.temp != null && <b style={{ left: Math.min(100, Math.max(0, ((w.temp - mn) / span) * 100)) + '%' }} />}
+              </span>
+              <span className="lf-wk-hi">{d.hi}°</span>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }
@@ -334,4 +373,44 @@ export const WEATHER_CSS = `
 .lf-wi{flex:none}
 .lf-wi.k-clear{color:#FFE28A}
 @media (prefers-reduced-motion:reduce){.lf-tone i{animation:none}}
+/* 角标精简：城市、现在、今天区间，三处都能点，点了翻仪表盘 */
+.lf-wbadge.compact{gap:0;min-width:0;transition:opacity .3s,transform .3s}
+.lf-root .lf-wb-hit{border:0;background:transparent;padding:0;color:inherit;font:inherit;cursor:pointer;text-align:right;text-shadow:inherit;transition:opacity .2s,transform .2s}
+.lf-root .lf-wb-hit:hover{opacity:.82}
+.lf-root .lf-wb-hit:active{transform:scale(.97)}
+.lf-root .lf-wbadge.compact .lf-wb-city{font-size:14px;font-weight:600;color:rgba(255,255,255,.88)}
+.lf-root .lf-wbadge.compact .lf-wb-city:hover{text-decoration:none}
+.lf-root .lf-wbadge.compact .lf-wb-temp{font-size:44px;font-weight:300;line-height:1.05;letter-spacing:-.04em}
+.lf-root .lf-wbadge.compact .lf-wb-sub{font-size:12.5px;color:rgba(255,255,255,.85);white-space:pre}
+.lf-root .lf-wb-mini{border:0;background:transparent;padding:0;font:inherit;cursor:pointer}
+/* 仪表盘翻面 */
+.lf-dialflip{display:grid;perspective:1400px}
+.lf-dialflip>.lf-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .75s cubic-bezier(.3,1.25,.4,1),visibility 0s linear .3s}
+.lf-dialflip>.lf-face.back,.lf-dialflip.on>.lf-face.front{visibility:hidden}
+.lf-dialflip.on>.lf-face.back{visibility:visible}
+.lf-wbadge.compact.flipped{animation:none;opacity:0;transform:translateY(-4px);pointer-events:none}
+.lf-dialflip>.lf-face.back{transform:rotateY(-180deg);display:grid;align-items:center;justify-items:center}
+.lf-dialflip.on>.lf-face.front{transform:rotateY(180deg);pointer-events:none}
+.lf-dialflip.on>.lf-face.back{transform:rotateY(0)}
+.lf-dialflip:not(.on)>.lf-face.back{pointer-events:none}
+.lf-wk{width:min(400px,100%);padding:18px 20px 14px;border-radius:30px;color:#fff;background:rgba(255,255,255,.13);-webkit-backdrop-filter:blur(22px) saturate(1.1);backdrop-filter:blur(22px) saturate(1.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.08),0 20px 50px -24px rgba(0,0,0,.45);cursor:pointer}
+.lf-wk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.18);font-size:12.5px;color:rgba(255,255,255,.75);letter-spacing:.02em}
+.lf-root .lf-wk-city{border:0;background:transparent;padding:0;color:rgba(255,255,255,.75);font:inherit;font-size:12.5px;cursor:pointer}
+.lf-root .lf-wk-city:hover{color:#fff}
+.lf-wk-head .lf-wb-input{width:130px;height:28px;font-size:12.5px}
+.lf-wk-list{list-style:none;margin:0;padding:0}
+.lf-wk-list li{display:grid;grid-template-columns:44px 52px 34px 1fr 34px;align-items:center;gap:8px;height:43px;border-bottom:1px solid rgba(255,255,255,.1);font-size:15px;font-variant-numeric:tabular-nums}
+.lf-wk-list li:last-child{border-bottom:0}
+.lf-dialflip.on .lf-wk-list li{animation:lf-wkin .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lf-wkin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lf-wk-day{font-weight:600}
+.lf-wk-ic{display:flex;flex-direction:column;align-items:center;line-height:1}
+.lf-wk-ic em{font-style:normal;font-size:10.5px;font-weight:700;color:#8FD3FF;margin-top:1px}
+.lf-wk-lo{text-align:right;color:rgba(255,255,255,.6)}
+.lf-wk-hi{text-align:left;font-weight:600}
+.lf-wk-bar{position:relative;height:5px;border-radius:3px;background:rgba(0,0,0,.18)}
+.lf-wk-bar i{position:absolute;top:0;bottom:0;border-radius:3px}
+.lf-wk-bar b{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+.lf-wk-empty{padding:40px 0;text-align:center;color:rgba(255,255,255,.75)}
 `
