@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffe
 import { HeroSky, WeatherBadge, WeekWeather, toggleWx, useWeather, WEATHER_CSS } from './weather.jsx'
 import { DOMAIN, GOALS, setGoals, setWeather, eventTone, TONES, parse, fromAI, frequent, ghostSlots, derive, seed, effectsOf, completeEvent, todoToExpense, fmtTime, fmtHM, money, num, hourOf, startOfDay, MEAL_NAME, uid } from './data.js'
 import { CSS, FONT_HREF } from './styles.js'
+import { rgStarSky, rgDaySky, rgSunInfo, RgSwitch } from './sky.js'
 import { bindHover } from './hover.js'
 import { LiquidBar } from './liquid.jsx'
 import { WeightFog, Private, FOG_CSS } from './fog.jsx'
@@ -285,6 +286,38 @@ function Card({ id, cls = '', bg, color, refs, flash, armed, hl, dim, children, 
 
 // ---------- 主体 ----------
 export default function LifeApp() {
+  // 日夜：跟着日出日落走；手动拨过的，保持到下一次日出或日落
+  const [, setSunTick] = useState(0)
+  useEffect(() => { const iv = setInterval(() => setSunTick((x) => x + 1), 3e4); return () => clearInterval(iv) }, [])
+  const sunInfo = rgSunInfo(Date.now())
+  const [ovr, setOvr] = useState(() => {
+    try { const o = JSON.parse(localStorage.getItem('rigui-theme2')); return o && o.until > Date.now() ? o : null } catch (e) { return null }
+  })
+  const isDark = ovr && ovr.until > Date.now() ? ovr.t === 'dark' : sunInfo.dark
+  window.__rgDark = isDark
+  useEffect(() => { window.dispatchEvent(new Event('rg-theme')) }, [isDark])
+  const themeRef = useRef(null), skyRef = useRef(null), skyOrigin = useRef(null), themingT = useRef(0), skyApi = useRef(null)
+  // 夜空：星星从开关停下的位置依次亮起
+  useEffect(() => {
+    const el = skyRef.current; if (!el) return
+    const api = rgStarSky(el); skyApi.current = api
+    return () => api.stop()
+  }, [])
+  useEffect(() => {
+    const api = skyApi.current; if (!api) return
+    const o = skyOrigin.current; skyOrigin.current = null
+    if (isDark) o ? api.bloom(o.x, o.y) : api.full()
+  }, [isDark])
+  const setDark = (v) => {
+    const o = v === sunInfo.dark ? null : { t: v ? 'dark' : 'light', until: sunInfo.next }
+    try { o ? localStorage.setItem('rigui-theme2', JSON.stringify(o)) : localStorage.removeItem('rigui-theme2') } catch (e) {}
+    const b = themeRef.current && themeRef.current.querySelector('.lf-sw')
+    if (b) { const r = b.getBoundingClientRect(); skyOrigin.current = { x: r.left + (v ? r.width - r.height / 2 : r.height / 2), y: r.top + r.height / 2 } }
+    // 换主题的 0.7 秒里所有颜色一起渐变
+    const root = rootRef.current
+    if (root) { root.classList.add('lf-theming'); clearTimeout(themingT.current); themingT.current = setTimeout(() => root.classList.remove('lf-theming'), 900) }
+    setOvr(o)
+  }
   const [db, setDb] = useState(load)
   const [now, setNow] = useState(Date.now())
   const [text, setText] = useState('')
@@ -837,6 +870,14 @@ export default function LifeApp() {
   // 天气 + 正在进行的日程 → 顶部大卡片的背景
   const weather = useWeather()
   const heroTone = S.nowEvent ? { key: eventTone(S.nowEvent), e: S.nowEvent } : null
+  // 白天：整页是当天的天空，卡片投影跟着太阳；雨雪只在进来时下一阵
+  const dskyRef = useRef(null), dfxRef = useRef(null), dayApi = useRef(null)
+  useEffect(() => {
+    if (!rootRef.current || !dskyRef.current || !dfxRef.current) return
+    const api = rgDaySky(rootRef.current, dskyRef.current, dfxRef.current); dayApi.current = api
+    return () => api.stop()
+  }, [])
+  useEffect(() => { dayApi.current && dayApi.current.update({ w: weather.w, dark: isDark }) }, [weather.w && weather.w.at, weather.w && weather.w.code, now, isDark])
   const todoEls = useRef({})
   const todoOrder = useDisplayOrder(S.todos.map((t) => t.id), 520)
   const shownTodos = todoOrder.map((id) => S.todos.find((t) => t.id === id)).filter(Boolean)
@@ -860,8 +901,11 @@ export default function LifeApp() {
   const dateStr = (() => { const d = new Date(S.now); return (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日，周' + '日一二三四五六'[d.getDay()] })()
 
   return (
-    <div className="lf-root" ref={rootRef}>
+    <div className="lf-root" data-theme={isDark ? 'dark' : 'light'} ref={rootRef}>
       <style>{CSS + GOALS_CSS + CARDS_CSS + FOG_CSS + RECEIPT_CSS + WEATHER_CSS}</style>
+      <div className="lf-dsky" ref={dskyRef} aria-hidden="true" />
+      <div className="lf-nsky" ref={skyRef} aria-hidden="true"><canvas /></div>
+      <div className="lf-dfx" ref={dfxRef} aria-hidden="true" />
       <LayoutCtx.Provider value={layoutApi}>
       <div className="lf-wrap" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ marginBottom: GAP }}>
@@ -870,6 +914,10 @@ export default function LifeApp() {
           <Card {...P('hero', 0)} cls="s12" bg="#3B6FA8" color="#F4F5F1" style={{ padding: '32px 36px' }}>
             <HeroSky w={weather.w} now={now} tone={heroTone} />
             <WeatherBadge weather={weather} tone={heroTone} now={now} onFlip={(e) => { e.stopPropagation(); toggleWx(e.currentTarget.closest('[data-card=hero]')) }} />
+            <div className="lf-theme" ref={themeRef} title={isDark ? '切回日间' : '切到夜间'} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+              <RgSwitch on={isDark} onChange={setDark} />
+              <span className="lf-theme-tip" aria-hidden="true">{isDark ? '夜间' : '日间'}</span>
+            </div>
             <div className="lf-wxback" aria-hidden="true"><WeekWeather weather={weather} /></div>
             <div className="lf-hero lf-hero-sky lf-glassy">
               <div className="lf-hero-left" style={{ display: 'flex', flexDirection: 'column', gap: 44, alignSelf: 'stretch', justifyContent: 'center', padding: '4px 0' }}>
@@ -1272,7 +1320,7 @@ function TodayList({ S, ghosts, onFill, onRemove }) {
 function NextCard({ P, S, onDone }) {
   const n = S.next
   if (!n) return (
-    <Card {...P('next', 3)} cls="s4" bg="#F4F5F1">
+    <Card {...P('next', 3)} cls="s4" bg="var(--sheet)">
       <h2 className="lf-h">接下来</h2>
       <p style={{ fontSize: 22, fontWeight: 600, margin: '18px 0 6px' }}>后面没有安排了</p>
       <span className="lf-sub">说「明天 19:30 跑步」加一项。</span>

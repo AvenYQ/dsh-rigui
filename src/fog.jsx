@@ -1,8 +1,10 @@
 // 体重卡上的一层「起雾的玻璃」：默认看不清，用鼠标来回擦几下才露出来
 // - 擦过的地方透明，雾气边缘是软的；擦开四成左右，剩下的雾自己散掉
 // - 鼠标离开卡片一会儿（12 秒），雾气慢慢重新起来
+// - 只擦了一部分就停手：停 1.8 秒（或移出 0.9 秒），擦过的地方在 1.6 秒里重新蒙上雾
 // - 正面背面共用一个状态：擦开了才看得到，翻到背面也一样
 import React, { useEffect, useRef, useState } from 'react'
+import { rgIsDark } from './sky.js'
 
 const store = { revealed: false, subs: new Set(), timer: 0 }
 const setRevealed = (v) => { store.revealed = v; store.subs.forEach((f) => f(v)) }
@@ -27,8 +29,10 @@ export function WeightFog({ label = '擦一擦玻璃，看看体重' }) {
     if (revealed) return
     const c = cv.current; if (!c) return
     const ctx = c.getContext('2d')
-    let w = 0, h = 0, dpr = 1, last = null, strokes = 0
+    let w = 0, h = 0, dpr = 1, last = null, strokes = 0, idle = 0, raf = 0
+    const full = document.createElement('canvas')   // 完整的雾，回雾时一点点盖回来
     const paint = () => {
+      cancelAnimationFrame(raf)
       dpr = window.devicePixelRatio || 1
       w = c.clientWidth; h = c.clientHeight
       c.width = Math.round(w * dpr); c.height = Math.round(h * dpr)
@@ -36,8 +40,8 @@ export function WeightFog({ label = '擦一擦玻璃，看看体重' }) {
       ctx.globalCompositeOperation = 'source-over'
       // 雾：带一点冷色的磨砂白
       const g = ctx.createLinearGradient(0, 0, w, h)
-      const dk = document.body.hasAttribute('data-ds-dark-theme')
-      g.addColorStop(0, dk ? 'rgb(52,57,60)' : 'rgb(234,239,237)'); g.addColorStop(1, dk ? 'rgb(42,46,49)' : 'rgb(224,231,229)')
+      const dk = rgIsDark()
+      g.addColorStop(0, dk ? 'rgb(40,45,64)' : 'rgb(234,239,237)'); g.addColorStop(1, dk ? 'rgb(31,35,52)' : 'rgb(224,231,229)')
       ctx.fillStyle = g; ctx.fillRect(0, 0, w, h)
       // 细密的颗粒
       let s = 11; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280
@@ -49,8 +53,28 @@ export function WeightFog({ label = '擦一擦玻璃，看看体重' }) {
         dg.addColorStop(0, dk ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.95)'); dg.addColorStop(0.7, dk ? 'rgba(120,130,130,.35)' : 'rgba(210,220,218,.6)'); dg.addColorStop(1, dk ? 'rgba(90,100,100,.15)' : 'rgba(180,195,192,.25)')
         ctx.fillStyle = dg; ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill()
       }
+      full.width = c.width; full.height = c.height
+      full.getContext('2d').drawImage(c, 0, 0)
     }
     paint()
+    // 日夜切换时按新颜色重画
+    const onTheme = () => { if (!store.revealed) paint() }
+    window.addEventListener('rg-theme', onTheme)
+    const regrow = () => {
+      cancelAnimationFrame(raf)
+      const t0 = performance.now(), DUR = 1600
+      const step = (t) => {
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'
+        const done = t - t0 >= DUR
+        ctx.globalAlpha = done ? 1 : 0.045
+        ctx.drawImage(full, 0, 0)
+        ctx.restore()
+        if (done) { strokes = 0; return }
+        raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
+    }
+    const rest = (ms) => { clearTimeout(idle); idle = setTimeout(() => { if (!store.revealed) regrow() }, ms) }
     const ro = new ResizeObserver(() => { if (!store.revealed) paint() }); ro.observe(c)
     const brush = (x, y) => {
       ctx.globalCompositeOperation = 'destination-out'
@@ -67,17 +91,18 @@ export function WeightFog({ label = '擦一擦玻璃，看看体重' }) {
       return clear / n
     }
     const move = (e) => {
+      cancelAnimationFrame(raf); rest(1800)
       const rc = c.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top
       if (last) {
         const d = Math.hypot(x - last.x, y - last.y), k = Math.max(1, Math.ceil(d / 8))
         for (let i = 1; i <= k; i++) brush(last.x + ((x - last.x) * i) / k, last.y + ((y - last.y) * i) / k)
       } else brush(x, y)
       last = { x, y }
-      if (++strokes % 12 === 0 && cleared() > 0.42) { setClearing(true); setTimeout(() => setRevealed(true), 520) }
+      if (++strokes % 12 === 0 && cleared() > 0.42) { clearTimeout(idle); setClearing(true); setTimeout(() => setRevealed(true), 520) }
     }
-    const up = () => { last = null }
+    const up = () => { last = null; if (strokes) rest(900) }
     c.addEventListener('pointermove', move); c.addEventListener('pointerleave', up)
-    return () => { ro.disconnect(); c.removeEventListener('pointermove', move); c.removeEventListener('pointerleave', up) }
+    return () => { clearTimeout(idle); cancelAnimationFrame(raf); window.removeEventListener('rg-theme', onTheme); ro.disconnect(); c.removeEventListener('pointermove', move); c.removeEventListener('pointerleave', up) }
   }, [revealed])
 
   if (revealed) return <span ref={anchor} hidden />

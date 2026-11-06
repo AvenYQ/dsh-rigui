@@ -5,6 +5,7 @@
 // - 超过额度的那段变成红色
 // - 新记了一顿：液面从原来的位置涨上去，冒一阵泡
 import React, { useEffect, useRef } from 'react'
+import { rgIsDark } from './sky.js'
 
 const TUBE_H = 20, PAD_T = 5, H = TUBE_H + PAD_T * 2
 
@@ -88,9 +89,9 @@ export function LiquidBar({ eaten, goal, burned, cap, meals, preview, pour }) {
       // ---- 画 ----
       ctx.clearRect(0, 0, w, H)
       ctx.save(); tube(w); ctx.clip()
-      const dk = document.body.hasAttribute('data-ds-dark-theme')
-      ctx.fillStyle = dk ? '#25282C' : '#F1F2EE'; ctx.fillRect(0, 0, w, H)
-      ctx.fillStyle = dk ? '#2E3136' : '#E6E8E2'; ctx.fillRect(0, 0, xg, H)
+      const dk = rgIsDark()
+      ctx.fillStyle = dk ? '#222739' : '#F1F2EE'; ctx.fillRect(0, 0, w, H)
+      ctx.fillStyle = dk ? '#2A3042' : '#E6E8E2'; ctx.fillRect(0, 0, xg, H)
       if (L.burned > 0) {  // 练出来的额度：绿色斜纹
         ctx.save(); ctx.beginPath(); ctx.rect(xg, 0, xb - xg, H); ctx.clip()
         ctx.fillStyle = dk ? '#1C3A2E' : '#DDF2E8'; ctx.fillRect(xg, 0, xb - xg, H)

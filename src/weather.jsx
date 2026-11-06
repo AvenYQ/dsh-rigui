@@ -70,6 +70,8 @@ export function useWeather() {
         days: (d.daily.time || []).map((t, k) => ({ date: t, code: d.daily.weather_code ? d.daily.weather_code[k] : cur.weather_code, hi: Math.round(d.daily.temperature_2m_max[k]), lo: Math.round(d.daily.temperature_2m_min[k]), pop: d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[k] : null })),
         hourly: d.hourly.time.slice(i0 + 1, i0 + 6).map((t, k) => ({ h: +t.slice(11, 13), temp: Math.round(d.hourly.temperature_2m[i0 + 1 + k]), code: d.hourly.weather_code[i0 + 1 + k] })),
         rainSoon: d.hourly.weather_code.slice(i0, i0 + 6).some((x) => kindOf(x) === 'rain' || kindOf(x) === 'thunder' || kindOf(x) === 'drizzle'),
+        // 今天到现在下了几个小时的雪：积雪按这个预先铺好
+        snowHrs: d.hourly.weather_code.slice(Math.max(0, d.hourly.time.findIndex((t) => t.slice(0, 10) === nowIso.slice(0, 10))), i0 + 1).filter((x) => kindOf(x) === 'snow').length,
       }
       ls.set(CACHE, out); setW(out); setErr('')
     } catch (e) { setErr('天气没取到') }

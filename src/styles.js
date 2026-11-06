@@ -1,3 +1,4 @@
+import { SKY_CSS } from './sky-css.js'
 export const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&display=swap'
 
 export const CSS = `
@@ -6,11 +7,11 @@ export const CSS = `
   position:relative;min-height:100%;box-sizing:border-box;background:var(--ground);color:var(--ink);
   font-family:'Bricolage Grotesque','PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;container-type:inline-size;container-name:lf;overflow:clip}
-/* 夜间：跟随 DSH 的深色主题（body[data-ds-dark-theme]） */
-body[data-ds-dark-theme] .lf-root{--ink:#E8E9E5;--ink2:#A7ACA4;--ink3:#7D827B;--ground:#111214;--card:#1B1D20;--rule:#2A2D31;--fill:#25282C;--fill2:#2E3136;--line:#3A3E44;--sheet:#16181A;
+/* 夜间：默认跟随 DSH 的深色主题，也可以在顶部开关里单独切 */
+.lf-root[data-theme=dark]{--ink:#E6E8EE;--ink2:#A3A9B8;--ink3:#767D8E;--ground:#0B0E22;--card:#171B28;--rule:#252A3A;--fill:#222739;--fill2:#2A3042;--line:#353B50;--sheet:#131725;
   --move-ink:#5FD39C;--warn-ink:#FF8A8E;--money-ink:#BBA8F7;--food-ink:#F6B373;color-scheme:dark}
-body[data-ds-dark-theme] .lf-root .lf-card{box-shadow:inset 0 0 0 1px rgba(255,255,255,.04),var(--lift,0 0 #0000)}
-body[data-ds-dark-theme] .lf-host{background:#111214!important}
+.lf-root[data-theme=dark] .lf-card{box-shadow:inset 0 0 0 1px rgba(170,185,255,.07),var(--lift,0 0 #0000)}
+${SKY_CSS}
 .lf-root.lf-scrolling .lf-wrap{pointer-events:none}
 .lf-root *,.lf-root *::before,.lf-root *::after{box-sizing:border-box}
 .lf-root button{font:inherit;color:inherit;cursor:pointer}
